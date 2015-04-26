@@ -7,13 +7,19 @@ public class AddressBookKey {
 	public AddressBookKey(){
 		
 	}
-	
+
 	public AddressBookKey(String name, String lastname, String phone){
 		this.setName(name);
 		this.setLastname(lastname);
 		this.setPhone(phone);
 	}
-
+	
+	public AddressBookKey(ContactDetails details){
+		this.setName(details.getVorname());
+		this.setLastname(details.getNachname());
+		this.setPhone(details.getTelefonnummer());
+	}
+	
 	public String getName() {
 		return name;
 	}
@@ -35,22 +41,14 @@ public class AddressBookKey {
 	}
 
 	public void setPhone(String phone) {
-		if(phone.isEmpty()){
-			phone = "0000000000";
-		}
 		this.phone = phone;
 	}
 	
-	public String getKey(){
-		return  getCleanKey(this.getName()) + "::" + getCleanKey(this.getLastname()) + "::" + getCleanKey(this.getPhone());
+	public String generateKey(){
+		name = this.getName();
+		lastname = this.getName();
+		phone = this.getName();
+		return name + "::" + lastname + "::" + phone;
 	}
-	
-	private String getCleanKey(String key) {
-		if (key != null && !key.isEmpty()) {
-			return key.trim().toLowerCase();
-		}
-		return key;
-	}
-	
-	
+
 }

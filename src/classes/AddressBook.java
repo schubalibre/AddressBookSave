@@ -1,7 +1,9 @@
 package classes;
 
 import interfaces.AddressBookInterface;
+
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -24,7 +26,7 @@ public class AddressBook implements AddressBookInterface {
 	 */
 
 	// eine Maps für name und lastName
-	private Map<AddressBookKey, ContactDetails> namesMap;
+	private Map<String, ContactDetails> namesMap;
 	
 	public AddressBook() {
 		namesMap = new TreeMap<>();
@@ -35,8 +37,7 @@ public class AddressBook implements AddressBookInterface {
 	}
 	
 	@Override
-	public ContactDetails getDetails(String key)
-			throws DetailsNotFoundException {
+	public ContactDetails getDetails(String key) throws DetailsNotFoundException {
 
 		if (!this.keyInUse(key))
 			throw new DetailsNotFoundException("Leider konnten keine Kontakte mit dem Key '" + key + "' gefunden werden!");
@@ -46,7 +47,7 @@ public class AddressBook implements AddressBookInterface {
 	}
 
 	@Override
-	public boolean keyInUse(AdressBookKey key) {
+	public boolean keyInUse(String key) {
 		// key wird hier aufbereitet trim toLowerCase
 		key = this.getCleanKey(key);
 		// es wird geschaut, ob namesMap den key besitzt (true oder false)
@@ -57,8 +58,8 @@ public class AddressBook implements AddressBookInterface {
 	public void addDetails(ContactDetails details) {
 		if (details != null) {
 
-			AddressBookKey key = new AddressBookKey(details.getVorname(),details.getNachname(),details.getTelefonnummer());
-
+			String key = new AddressBookKey(details).generateKey();
+			
 			// Kontrolle ob der name oder lastName schon benutzt wird
 			if (this.keyInUse(key))
 				throw new DuplicateKeyException();
@@ -68,7 +69,7 @@ public class AddressBook implements AddressBookInterface {
 	}
 	
 	@Override
-	public void changeDetails(AdressBookKey oldKey, ContactDetails details) {
+	public void changeDetails(String oldKey, ContactDetails details) {
 		// oldKey wird hier aufbereitet trim toLowerCase
 		oldKey = this.getCleanKey(oldKey);
 		// wenn der Eintrag existiert.....
@@ -88,25 +89,19 @@ public class AddressBook implements AddressBookInterface {
 		}
 	}
 
-	// wird noch nicht genutzt
 	@Override
 	public ContactDetails[] search(String keyPrefix) {
 
 		keyPrefix = this.getCleanKey(keyPrefix);
 
 		if (keyPrefix.length() > 0) {
-			Set<String> allKeys = namesMap.keySet();
-			ContactDetails[] contactDetails = new ContactDetails[this
-					.getNumberOfEntries()];
-			int i = 0;
-
-			for (String key : allKeys) {
+			List<ContactDetails> matchedDetails = new ArrayList<ContactDetails>();
+			for (String key : namesMap.keySet()) {
 				if (key.contains(keyPrefix)) {
-					contactDetails[i] = this.getDetails(key);
-					i++;
+					matchedDetails.add(this.getDetails(key));
 				}
 			}
-			return contactDetails;
+			return matchedDetails.toArray( new ContactDetails[matchedDetails.size()] );
 		}
 		return null;
 	}
@@ -118,7 +113,7 @@ public class AddressBook implements AddressBookInterface {
 	}
 
 	@Override
-	public void removeDetails(AdressBookKey key) {
+	public void removeDetails(String key) {
 		// wir löschen aus beiden Maps die Einträge
 		if (this.keyInUse(key)) {
 			// und löschen mit name und lastName die Einträge aus Maps
@@ -136,7 +131,7 @@ public class AddressBook implements AddressBookInterface {
 	public String toString(){
 		
 		String allContacts = null;
-		for(AddressBookKey key:namesMap.keySet()) {
+		for(String key:namesMap.keySet()) {
 			allContacts = allContacts + namesMap.get(key).toString();
 		}
 		

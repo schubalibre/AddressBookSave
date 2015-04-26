@@ -3,7 +3,7 @@ import classes.ContactDetails;
 
 public interface AddressBookInterface {
 	
-	public ContactDetails getDetails(String key);
+	public ContactDetails getDetails(String name, String lastname, String phone);
 	
 	public boolean keyInUse(String key);
 	

@@ -1,5 +1,7 @@
 package classes;
 
+import exceptions.EmptyKeyException;
+
 public class AddressBookKey {
 	
 	private String name, lastname, phone;
@@ -25,7 +27,12 @@ public class AddressBookKey {
 	}
 
 	public void setName(String name) {
-		this.name = name;
+		try {
+			this.name = this.getCleanKey(name);
+		} catch (EmptyKeyException e) {
+			System.out.println("name");
+			e.printStackTrace();
+		}
 	}
 
 	public String getLastname() {
@@ -33,7 +40,13 @@ public class AddressBookKey {
 	}
 
 	public void setLastname(String lastname) {
-		this.lastname = lastname;
+		
+		try {
+			this.lastname = this.getCleanKey(lastname);
+		} catch (EmptyKeyException e) {
+			System.out.println("lastname");
+			e.printStackTrace();
+		}
 	}
 
 	public String getPhone() {
@@ -41,14 +54,29 @@ public class AddressBookKey {
 	}
 
 	public void setPhone(String phone) {
-		this.phone = phone;
+		if(phone == null || phone.isEmpty()){
+			phone = "0000000000";
+		}
+		
+		try {
+			this.phone = this.getCleanKey(phone);
+		} catch (EmptyKeyException e) {
+			System.out.println("phone");
+			e.printStackTrace();
+		}
 	}
 	
 	public String generateKey(){
 		name = this.getName();
-		lastname = this.getName();
-		phone = this.getName();
+		lastname = this.getLastname();
+		phone = this.getPhone();
 		return name + "::" + lastname + "::" + phone;
+	}
+	
+	private String getCleanKey(String key) throws EmptyKeyException {
+		if (key == null || key.isEmpty())
+			throw new EmptyKeyException("The key: " + key + " is empty");
+		return key.trim().toLowerCase();
 	}
 
 }

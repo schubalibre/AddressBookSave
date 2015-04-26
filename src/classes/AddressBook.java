@@ -37,10 +37,12 @@ public class AddressBook implements AddressBookInterface {
 	}
 	
 	@Override
-	public ContactDetails getDetails(String key) throws DetailsNotFoundException {
+	public ContactDetails getDetails(String name, String lastname, String phone) throws DetailsNotFoundException {
+		
+		String key = new AddressBookKey(name, lastname, phone).generateKey();
 
 		if (!this.keyInUse(key))
-			throw new DetailsNotFoundException("Leider konnten keine Kontakte mit dem Key '" + key + "' gefunden werden!");
+			throw new DetailsNotFoundException("Leider konnten keine Kontakte mit dem Namen '" + name + "' gefunden werden!");
 		// wenn ein Eintrag bei namesMap existiert wird dieser zurück gegeben,
 		// sonst null
 		return namesMap.get(key);
@@ -86,6 +88,9 @@ public class AddressBook implements AddressBookInterface {
 			 * nicht sondern löschen die alten Einträge erst und kreieren dann
 			 * den neuen Eintrag neu. Damit bleiben beide Maps konsistent
 			 */
+		}else{
+			System.out.println(namesMap.keySet());
+			System.out.println(this.keyInUse(oldKey));
 		}
 	}
 
@@ -98,12 +103,22 @@ public class AddressBook implements AddressBookInterface {
 			List<ContactDetails> matchedDetails = new ArrayList<ContactDetails>();
 			for (String key : namesMap.keySet()) {
 				if (key.contains(keyPrefix)) {
-					matchedDetails.add(this.getDetails(key));
+					String[] keyArray = key.split("::");
+					matchedDetails.add(this.getDetails(keyArray[0],keyArray[1],keyArray[2]));
 				}
 			}
 			return matchedDetails.toArray( new ContactDetails[matchedDetails.size()] );
 		}
 		return null;
+	}
+	
+	public ContactDetails[] getAllContacts() {
+		List<ContactDetails> matchedDetails = new ArrayList<ContactDetails>();
+		for (String key : namesMap.keySet()) {
+				String[] keyArray = key.split("::");
+				matchedDetails.add(this.getDetails(keyArray[0],keyArray[1],keyArray[2]));
+		}
+		return matchedDetails.toArray( new ContactDetails[matchedDetails.size()] );
 	}
 
 	@Override

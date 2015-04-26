@@ -7,24 +7,17 @@ public class Main {
 	public static void main(String[] args) {
 
 		fillMyBook();
-		
-		AddressBookKey key = new AddressBookKey();
-
-		try {
-			myBook.getDetails("sdfsdf");
-		} catch (Exception e) {
-			System.out.println(e.getMessage());
-		}
 
 		System.out.println(myBook.getNumberOfEntries() + " Einträge");
 		System.out.println("---------------------------------------------");
 
 		ContactDetails[] details = new ContactDetails[10];
 
-		details = myBook.search("Ber");
+		details = myBook.getAllContacts();
+		
 		if (details.length > 0) {
 			for (ContactDetails detail : details) {
-				// System.out.println(detail.getVorname());
+				System.out.println(detail.getVorname());
 			}
 		}
 		// getMyBookDetails();

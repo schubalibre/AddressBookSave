@@ -10,7 +10,7 @@ public class ContactDetails {
 
 	// Konstruktoren
 
-	public ContactDetails(String vorname, String nachname, String adresse, String telefonnummer, String mail) throws EmptyStringForSurnameOrLastname_Exception{
+	public ContactDetails(String vorname, String nachname, String telefonnummer, String mail, String adresse) throws EmptyStringForSurnameOrLastname_Exception{
 		
 		if( vorname.isEmpty() || nachname.isEmpty() )
 			throw new EmptyStringForSurnameOrLastname_Exception();

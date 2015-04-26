@@ -24,18 +24,10 @@ public class AddressBook implements AddressBookInterface {
 	 */
 
 	// eine Maps für name und lastName
-	private Map<AddressBookKey, ContactDetails> namesMap;
-	
-	public AddressBook() {
-		namesMap = new TreeMap<>();
-	}
-	
-	public AddressBook(AddressBook obj) {
-		namesMap = obj.namesMap;
-	}
-	
+	private Map<AdressBookKey, ContactDetails> namesMap = new TreeMap<>();
+
 	@Override
-	public ContactDetails getDetails(String key)
+	public ContactDetails getDetails(AdressBookKey key)
 			throws DetailsNotFoundException {
 
 		if (!this.keyInUse(key))
@@ -126,20 +118,10 @@ public class AddressBook implements AddressBookInterface {
 		}
 	}
 
-	private String getCleanKey(String key) {
+	private String getCleanKey(AdressBookKey key) {
 		if (key != null && !key.isEmpty()) {
 			return key.trim().toLowerCase();
 		}
 		return key;
-	}
-	
-	public String toString(){
-		
-		String allContacts = null;
-		for(AddressBookKey key:namesMap.keySet()) {
-			allContacts = allContacts + namesMap.get(key).toString();
-		}
-		
-		return allContacts;
 	}
 }

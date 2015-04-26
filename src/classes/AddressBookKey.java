@@ -52,13 +52,5 @@ public class AddressBookKey {
 		return key;
 	}
 	
-	public boolean contains(AddressBookKey key){
-		if(this.getCleanKey().contains(key)){
-			return true;
-		}
-		
-		return false;
-	}
-	
 	
 }

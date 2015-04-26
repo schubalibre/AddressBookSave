@@ -50,8 +50,23 @@ public class AddressBookUi extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		
-		VBox navigation = new VBox(10);		
+		this.generateNavigation();
 		
+		this.generateContent();
+		
+		Scene scene = new Scene(root, 900, 500);
+		
+		primaryStage.setTitle("AddressBook");
+		primaryStage.setScene(scene);
+        primaryStage.show();
+	}
+	
+	private void generateContent() {
+		root.setCenter(new Text("Kein Kontakt ausgewählt."));
+	}
+
+	private void generateNavigation(){
+				
 //		SearchField
 		
 		HBox searchbox = new HBox(10);
@@ -65,9 +80,11 @@ public class AddressBookUi extends Application {
 		
 		searchbox.getChildren().addAll(searchfield,search);
 		
+//		ContactList
+		
 		ScrollPane contactScroll = this.generateContactList(null);
 
-//	    Neuer Eintrag
+//	    Neuer Kontakt
 	    
 		Button neu = new Button("Neuer Eintag");
 		
@@ -75,22 +92,18 @@ public class AddressBookUi extends Application {
 		
 //		Natvigation
 		
+		VBox navigation = new VBox(10);	
+		
 		navigation.getChildren().addAll(searchbox,contactScroll,neu);
 		
 		navigation.setPadding(new Insets(10));
 		
 		root.setLeft(navigation);
-		root.setCenter(new Text("Kein Kontakt ausgewählt."));
 		
-		Scene scene = new Scene(root, 900, 500);
-		
-		primaryStage.setTitle("AddressBook");
-		primaryStage.setScene(scene);
-        primaryStage.show();
 	}
 	
 	private ScrollPane generateContactList(ContactDetails[] contactDetails) {
-		//		ScrollContactList
+//		ScrollContactList
 		
 		ObservableList<ContactDetails> data = FXCollections.observableArrayList();
 		
@@ -167,8 +180,10 @@ public class AddressBookUi extends Application {
 	private void generateForm(ContactDetails details){
 		
 		VBox contactBox = new VBox();
+		contactBox.setPadding(new Insets(10));
 		
 		Text header = new Text();
+		header.setFont(Font.font("Verdana", FontWeight.BOLD, 20));
 		
 		VBox contacts = new VBox();
 		contacts.setPadding(new Insets(10));
@@ -193,8 +208,7 @@ public class AddressBookUi extends Application {
 		}
 
 		for(String label : fields.keySet()){
-			System.out.println(label);
-			contacts.getChildren().add(this.rowBox(label,fields.get(label)));
+			contacts.getChildren().add(this.createRowBox(label,fields.get(label)));
 		}
 
 		HBox confirm = new HBox(10);
@@ -202,20 +216,29 @@ public class AddressBookUi extends Application {
 		confirm.setAlignment(Pos.BASELINE_CENTER);
 		
 		Button save = new Button("Speichern");
-		Button cancel = new Button("Abrechen");
-		
 		save.setOnMouseClicked((MouseEvent e) -> saveContact(e));
-
+	
+		Button cancel = new Button("Abrechen");
 		
 		confirm.getChildren().addAll(save, cancel);
 		
-		header.setFont(Font.font("Verdana", FontWeight.BOLD, 20));
-		
+
 		contactBox.getChildren().addAll(header,contacts,confirm);
-		
-		contactBox.setPadding(new Insets(10));
-		
 		root.setCenter(contactBox);
+	}
+
+	private HBox createRowBox(String label, TextField rowField){
+		
+		HBox rowBox = new HBox(10);
+		rowBox.setPadding(new Insets(10));
+		
+		Label rowLabel = new Label(label);
+		rowLabel.setMinWidth(100);
+		
+		rowField.setMinWidth(400);
+		rowBox.getChildren().addAll(rowLabel,rowField);
+		
+		return rowBox;
 	}
 	
 	private void saveContact(MouseEvent e){
@@ -245,22 +268,6 @@ public class AddressBookUi extends Application {
 				System.out.println("Fehler Aufgetreten");
 			}
 		}
-		
-	}
-	
-	private HBox rowBox (String label, TextField rowField){
-		
-		HBox rowBox = new HBox(10);
-		rowBox.setPadding(new Insets(10));
-		
-		Label rowLabel = new Label(label);
-		rowLabel.setMinWidth(100);
-		rowLabel.setPrefWidth(100);
-		rowLabel.setMaxWidth(400);
-		
-		rowBox.getChildren().addAll(rowLabel,rowField);
-		
-		return rowBox;
 	}
 
 	public static void main(String[] args) {
@@ -269,8 +276,14 @@ public class AddressBookUi extends Application {
 	
 	private void fillAddressBook() {
 		
-		for(int i = 0; i < 25; i++){
-			ContactDetails a = new ContactDetails(csRandomAlphaNumericString(5), csRandomAlphaNumericString(6),csRandomAlphaNumericString(9),csRandomAlphaNumericString(12),csRandomAlphaNumericString(25));
+		for(int i = 0; i < 500; i++){
+			ContactDetails a = new ContactDetails(
+					csRandomAlphaNumericString(5), 
+					csRandomAlphaNumericString(6),
+					csRandomAlphaNumericString(9),
+					csRandomAlphaNumericString(12),
+					csRandomAlphaNumericString(25)
+					);
 			book.addDetails(a);
 		}
 	}

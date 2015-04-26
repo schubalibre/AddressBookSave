@@ -5,7 +5,6 @@ import interfaces.AddressBookInterface;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 import exceptions.DetailsNotFoundException;
@@ -88,9 +87,6 @@ public class AddressBook implements AddressBookInterface {
 			 * nicht sondern löschen die alten Einträge erst und kreieren dann
 			 * den neuen Eintrag neu. Damit bleiben beide Maps konsistent
 			 */
-		}else{
-			System.out.println(namesMap.keySet());
-			System.out.println(this.keyInUse(oldKey));
 		}
 	}
 

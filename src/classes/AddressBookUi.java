@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -16,6 +17,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.text.*;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 
 public class AddressBookUi extends Application {
@@ -180,16 +182,18 @@ public class AddressBookUi extends Application {
 	private void generateForm(ContactDetails details){
 		
 		VBox contactBox = new VBox();
-		contactBox.setPadding(new Insets(10));
-		
+		contactBox.setPadding(new Insets(45,10,10,20));
+	
+
 		Text header = new Text();
-		header.setFont(Font.font("Verdana", FontWeight.BOLD, 20));
+		header.setFont(Font.font("Verdana", FontWeight.BOLD, 25));
+
 		
 		VBox contacts = new VBox();
-		contacts.setPadding(new Insets(10));
+		contacts.setPadding(new Insets(90,10,10,0));
 
 		if(details != null){
-			header.setText("Details zur Person");
+			header.setText("Details zu " + details.getVorname() + " " + details.getNachname());
 			
 			nameField.setText(details.getVorname());
 			lastnameField.setText(details.getNachname());
@@ -224,13 +228,19 @@ public class AddressBookUi extends Application {
 		
 
 		contactBox.getChildren().addAll(header,contacts,confirm);
+		
+		FadeTransition ft = new FadeTransition(Duration.millis(500), contactBox);
+		ft.setFromValue(0.0);
+		ft.setToValue(1.0);
+		ft.play();
+		
 		root.setCenter(contactBox);
 	}
 
 	private HBox createRowBox(String label, TextField rowField){
 		
-		HBox rowBox = new HBox(10);
-		rowBox.setPadding(new Insets(10));
+		HBox rowBox = new HBox();
+		rowBox.setPadding(new Insets(10,10,10,0));
 		
 		Label rowLabel = new Label(label);
 		rowLabel.setMinWidth(100);
@@ -256,6 +266,7 @@ public class AddressBookUi extends Application {
 				book.addDetails(contact);
 				this.generateContactList(null);
 				oldKey = new AddressBookKey(contact.getVorname(),contact.getNachname(),contact.getTelefonnummer()).generateKey();
+				this.generateForm(contact);
 			} catch (Exception e2) {
 				System.out.println("Fehler Aufgetreten");
 			}
@@ -264,6 +275,7 @@ public class AddressBookUi extends Application {
 				book.changeDetails(oldKey,contact);
 				this.generateContactList(null);
 				oldKey = new AddressBookKey(contact.getVorname(),contact.getNachname(),contact.getTelefonnummer()).generateKey();
+				this.generateForm(contact);
 			} catch (Exception e2) {
 				System.out.println("Fehler Aufgetreten");
 			}

@@ -129,6 +129,8 @@ public class AddressBook implements AddressBookInterface {
 		if (this.keyInUse(key)) {
 			// und löschen mit name und lastName die Einträge aus Maps
 			namesMap.remove(key);
+		}else{
+			System.out.println("konnte nicht Löschen " + key);
 		}
 	}
 

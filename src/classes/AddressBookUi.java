@@ -222,9 +222,10 @@ public class AddressBookUi extends Application {
 		Button save = new Button("Speichern");
 		save.setOnMouseClicked((MouseEvent e) -> saveContact(e));
 	
-		Button cancel = new Button("Abrechen");
+		Button delete = new Button("Löschen");
+		delete.setOnMouseClicked((MouseEvent e) -> deleteContact(e));
 		
-		confirm.getChildren().addAll(save, cancel);
+		confirm.getChildren().addAll(save, delete);
 		
 
 		contactBox.getChildren().addAll(header,contacts,confirm);
@@ -235,6 +236,23 @@ public class AddressBookUi extends Application {
 		ft.play();
 		
 		root.setCenter(contactBox);
+	}
+
+	private Object deleteContact(MouseEvent e) {
+		if(oldKey == null){
+			nameField.setText(null);
+			lastnameField.setText(null);
+			phoneField.setText(null);
+			emailField.setText(null);
+			addressField.setText(null);
+		}else{
+			book.removeDetails(oldKey);
+			this.generateContactList(null);
+			root.setCenter(new Text("Kein Kontakt ausgewählt."));
+			oldKey = null;
+			
+		}
+		return null;
 	}
 
 	private HBox createRowBox(String label, TextField rowField){

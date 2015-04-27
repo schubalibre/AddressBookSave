@@ -1,4 +1,5 @@
 package classes;
+
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +22,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -37,6 +39,8 @@ public class AddressBookUi extends Application {
 	private BorderPane root = new BorderPane(); 
 	
 	private StackPane center = new StackPane();
+	
+	private Text error = new Text(); 
 	
 	private ScrollPane contactScroll = new ScrollPane();
 	
@@ -57,6 +61,10 @@ public class AddressBookUi extends Application {
 		fields.put("Addresse",addressField);
 	}
 	
+	public static void main(String[] args) {
+		launch(args);
+	}
+	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		
@@ -72,11 +80,15 @@ public class AddressBookUi extends Application {
 	}
 	
 	private void generateContent(Node data,boolean remove) {
+		
+		if(remove)
+			center.getChildren().clear();
+		
+		center.getChildren().add(error);
+		error.setFont(Font.font("Verdana", FontWeight.BOLD, 15));
+		error.setFill(Color.RED);
+		
 		if(data != null){
-			
-			if(remove)
-				center.getChildren().clear();
-			
 			center.getChildren().add(data);
 		}else{
 			center.getChildren().add(new Text("Kein Kontakt ausgewählt."));
@@ -255,9 +267,10 @@ public class AddressBookUi extends Application {
 		Button save = new Button("Speichern");
 		save.setOnMouseClicked((MouseEvent e) -> saveContact(e));
 	
-		Button cancel = new Button("Abrechen");
+		Button delete = new Button("Löschen");
+		delete.setOnMouseClicked((MouseEvent e) -> deleteContact(e));
 		
-		confirm.getChildren().addAll(save, cancel);
+		confirm.getChildren().addAll(save, delete);
 		
 
 		contactBox.getChildren().addAll(header,contacts,confirm);
@@ -268,6 +281,27 @@ public class AddressBookUi extends Application {
 		ft.play();
 		
 		this.generateContent(contactBox,true);
+	}
+
+	private Object deleteContact(MouseEvent e) {
+		if(key == null){
+			nameField.setText(null);
+			lastnameField.setText(null);
+			phoneField.setText(null);
+			emailField.setText(null);
+			addressField.setText(null);
+		}else{
+			try {
+				book.removeDetails(key);
+			} catch (KeyIsNotInUseException | ParameterStringIsEmptyException e1) {
+				// TODO Auto-generated catch block
+				this.generateErrorModal(e1.getMessage());
+			}
+			key = null;
+			this.generateContactList(null);
+			this.generateContent(null, true);
+		}
+		return null;
 	}
 
 	private HBox createRowBox(String label, TextField rowField){
@@ -312,28 +346,15 @@ public class AddressBookUi extends Application {
 				key = book.generateKey(contact);
 				this.generateContactList(null);
 				this.generateForm(contact);
-			} catch (DuplicateKeyException | InvalidContactException
-					| KeyIsNotInUseException
-					| ParameterStringIsEmptyException e1) {
+			} catch (DuplicateKeyException | InvalidContactException | KeyIsNotInUseException | ParameterStringIsEmptyException e1) {
 				// TODO Auto-generated catch block
 				this.generateErrorModal(e1.getMessage());
 			}
-
 		}
-	}
-
-	public static void main(String[] args) {
-		launch(args);
 	}
 	
 	private void generateErrorModal(String message) {
-		VBox modal = new VBox();
-		Text msg = new Text(message);
-		modal.getChildren().add(msg);
-		System.out.println(message);
-		
-		this.generateContent(modal,false);
-		
+		error.setText(message);
 	}
 	
 	private void fillAddressBook() {
@@ -345,15 +366,13 @@ public class AddressBookUi extends Application {
 					csRandomAlphaNumericString(9),
 					csRandomAlphaNumericString(12),
 					csRandomAlphaNumericString(25)
-					);
-			
+					);	
 			try {
 				book.addDetails(a);
 			} catch (DuplicateKeyException | InvalidContactException
 					| ParameterStringIsEmptyException e) {
 				this.generateErrorModal(e.getMessage());
 			}
-
 		}
 	}
 

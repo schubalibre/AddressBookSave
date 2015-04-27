@@ -138,7 +138,6 @@ public class AddressBook /*implements AddressBookInterface*/ {
 			
 			// und löschen mit name und lastName die Einträge aus Maps
 			namesMap.remove(key);
-		
 	}
 
 	private String getCleanKey(String key) throws ParameterStringIsEmptyException{

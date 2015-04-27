@@ -5,28 +5,7 @@ public class Main {
 	private static AddressBook myBook = new AddressBook();
 
 	public static void main(String[] args) {
-
 		fillMyBook();
-
-		System.out.println(myBook.getNumberOfEntries() + " Einträge");
-		System.out.println("---------------------------------------------");
-
-		ContactDetails[] details = new ContactDetails[10];
-
-		details = myBook.getAllContacts();
-		
-		if (details.length > 0) {
-			for (ContactDetails detail : details) {
-				System.out.println(detail.getVorname());
-			}
-		}
-		// getMyBookDetails();
-		// System.out.println("---------------------------------------------");
-		// changeMyBookDetails();
-		// System.out.println("---------------------------------------------");
-		// myBook.removeDetails("Roberto");
-		// System.out.println(myBook.getNumberOfEntries() + " Einträge");
-
 	}
 
 	private static void changeMyBookDetails() {

@@ -4,6 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import exceptions.DetailsNotFoundException;
+import exceptions.DuplicateKeyException;
+import exceptions.InvalidContactException;
+import exceptions.KeyIsNotInUseException;
+import exceptions.ParameterStringIsEmptyException;
 import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
@@ -11,6 +16,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
@@ -22,13 +28,15 @@ import javafx.util.Duration;
 
 public class AddressBookUi extends Application {
 	
-	private String oldKey = null;
+	private String key = null;
 	
 	private Map<String, TextField> fields = new HashMap<>();
 	
 	private TextField nameField = new TextField(), lastnameField = new TextField(), phoneField = new TextField(), emailField = new TextField(), addressField = new TextField();
 	
 	private BorderPane root = new BorderPane(); 
+	
+	private StackPane center = new StackPane();
 	
 	private ScrollPane contactScroll = new ScrollPane();
 	
@@ -45,7 +53,7 @@ public class AddressBookUi extends Application {
 		fields.put("Vorname",nameField);
 		fields.put("Nachname",lastnameField);
 		fields.put("Telefon",phoneField);
-		fields.put("E-MAil",emailField);
+		fields.put("E-Mail",emailField);
 		fields.put("Addresse",addressField);
 	}
 	
@@ -54,7 +62,7 @@ public class AddressBookUi extends Application {
 		
 		this.generateNavigation();
 		
-		this.generateContent();
+		this.generateContent(null,false);
 		
 		Scene scene = new Scene(root, 900, 500);
 		
@@ -63,8 +71,18 @@ public class AddressBookUi extends Application {
         primaryStage.show();
 	}
 	
-	private void generateContent() {
-		root.setCenter(new Text("Kein Kontakt ausgewählt."));
+	private void generateContent(Node data,boolean remove) {
+		if(data != null){
+			
+			if(remove)
+				center.getChildren().clear();
+			
+			center.getChildren().add(data);
+		}else{
+			center.getChildren().add(new Text("Kein Kontakt ausgewählt."));
+		}
+		
+		root.setCenter(center);
 	}
 
 	private void generateNavigation(){
@@ -110,7 +128,12 @@ public class AddressBookUi extends Application {
 		ObservableList<ContactDetails> data = FXCollections.observableArrayList();
 		
 		if(contactDetails == null){
-			contactDetails = book.getAllContacts();
+
+				try {
+					contactDetails = book.getAllContacts();
+				} catch (DetailsNotFoundException | ParameterStringIsEmptyException e1) {
+					this.generateErrorModal(e1.getMessage());
+				}
 		}
 	    
 		for(ContactDetails contact : contactDetails){
@@ -153,7 +176,13 @@ public class AddressBookUi extends Application {
 		String keyPrefix = searchfield.getText();
 		
 		if(keyPrefix.length() > 0){
-			ContactDetails[] query = book.search(keyPrefix);
+			ContactDetails[] query = null;
+			try {
+				query = book.search(keyPrefix);
+			} catch (ParameterStringIsEmptyException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			if(query.length > 0){
 				this.generateContactList(query);
 			}else{
@@ -170,12 +199,16 @@ public class AddressBookUi extends Application {
 
 	private void handleContact(MouseEvent e) {
 		ContactDetails details = listView.getSelectionModel().getSelectedItem();
-		oldKey = new AddressBookKey(details.getVorname(),details.getNachname(),details.getTelefonnummer()).generateKey();
+		try {
+			key = book.generateKey(details);
+		} catch (ParameterStringIsEmptyException e1) {
+			this.generateErrorModal(e1.getMessage());
+		}
 		this.generateForm(details);
 	}
 	
 	private void handleNewContact(MouseEvent e) {
-		oldKey = null;
+		key = null;
 		this.generateForm(null);
 	}
 	
@@ -234,7 +267,7 @@ public class AddressBookUi extends Application {
 		ft.setToValue(1.0);
 		ft.play();
 		
-		root.setCenter(contactBox);
+		this.generateContent(contactBox,true);
 	}
 
 	private HBox createRowBox(String label, TextField rowField){
@@ -261,24 +294,31 @@ public class AddressBookUi extends Application {
 		
 		ContactDetails contact = new ContactDetails(name, lastname, phone, email, address);
 
-		if(oldKey == null){
+		if(key == null){
+
 			try {
 				book.addDetails(contact);
+				key = book.generateKey(contact);
 				this.generateContactList(null);
-				oldKey = new AddressBookKey(contact.getVorname(),contact.getNachname(),contact.getTelefonnummer()).generateKey();
 				this.generateForm(contact);
-			} catch (Exception e2) {
-				System.out.println("Fehler Aufgetreten");
+			} catch (DuplicateKeyException | InvalidContactException | ParameterStringIsEmptyException e1) {
+				// TODO Auto-generated catch block
+				this.generateErrorModal(e1.getMessage());
 			}
 		}else{
+
 			try {
-				book.changeDetails(oldKey,contact);
+				book.changeDetails(key,contact);
+				key = book.generateKey(contact);
 				this.generateContactList(null);
-				oldKey = new AddressBookKey(contact.getVorname(),contact.getNachname(),contact.getTelefonnummer()).generateKey();
 				this.generateForm(contact);
-			} catch (Exception e2) {
-				System.out.println("Fehler Aufgetreten");
+			} catch (DuplicateKeyException | InvalidContactException
+					| KeyIsNotInUseException
+					| ParameterStringIsEmptyException e1) {
+				// TODO Auto-generated catch block
+				this.generateErrorModal(e1.getMessage());
 			}
+
 		}
 	}
 
@@ -286,9 +326,19 @@ public class AddressBookUi extends Application {
 		launch(args);
 	}
 	
+	private void generateErrorModal(String message) {
+		VBox modal = new VBox();
+		Text msg = new Text(message);
+		modal.getChildren().add(msg);
+		System.out.println(message);
+		
+		this.generateContent(modal,false);
+		
+	}
+	
 	private void fillAddressBook() {
 		
-		for(int i = 0; i < 500; i++){
+		for(int i = 0; i < 5; i++){
 			ContactDetails a = new ContactDetails(
 					csRandomAlphaNumericString(5), 
 					csRandomAlphaNumericString(6),
@@ -296,10 +346,17 @@ public class AddressBookUi extends Application {
 					csRandomAlphaNumericString(12),
 					csRandomAlphaNumericString(25)
 					);
-			book.addDetails(a);
+			
+			try {
+				book.addDetails(a);
+			} catch (DuplicateKeyException | InvalidContactException
+					| ParameterStringIsEmptyException e) {
+				this.generateErrorModal(e.getMessage());
+			}
+
 		}
 	}
-	
+
 	private static char[] VALID_CHARACTERS =
 		    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456879".toCharArray();
 

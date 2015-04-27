@@ -1,6 +1,7 @@
 package classes;
 
 import exceptions.EmptyKeyException;
+import exceptions.ParameterStringIsEmptyException;
 
 public class AddressBookKey {
 	
@@ -10,13 +11,13 @@ public class AddressBookKey {
 		
 	}
 
-	public AddressBookKey(String name, String lastname, String phone){
+	public AddressBookKey(String name, String lastname, String phone) throws ParameterStringIsEmptyException{
 		this.setName(name);
 		this.setLastname(lastname);
 		this.setPhone(phone);
 	}
 	
-	public AddressBookKey(ContactDetails details){
+	public AddressBookKey(ContactDetails details) throws ParameterStringIsEmptyException{
 		this.setName(details.getVorname());
 		this.setLastname(details.getNachname());
 		this.setPhone(details.getTelefonnummer());
@@ -26,44 +27,29 @@ public class AddressBookKey {
 		return name;
 	}
 
-	public void setName(String name) {
-		try {
-			this.name = this.getCleanKey(name);
-		} catch (EmptyKeyException e) {
-			System.out.println("name");
-			e.printStackTrace();
-		}
+	public void setName(String name) throws ParameterStringIsEmptyException {
+		this.name = this.getCleanKey(name);
 	}
 
 	public String getLastname() {
 		return lastname;
 	}
 
-	public void setLastname(String lastname) {
-		
-		try {
-			this.lastname = this.getCleanKey(lastname);
-		} catch (EmptyKeyException e) {
-			System.out.println("lastname");
-			e.printStackTrace();
-		}
+	public void setLastname(String lastname) throws ParameterStringIsEmptyException {
+		this.lastname = this.getCleanKey(lastname);
 	}
 
 	public String getPhone() {
 		return phone;
 	}
 
-	public void setPhone(String phone) {
+	public void setPhone(String phone) throws ParameterStringIsEmptyException {
 		if(phone == null || phone.isEmpty()){
 			phone = "0000000000";
 		}
 		
-		try {
-			this.phone = this.getCleanKey(phone);
-		} catch (EmptyKeyException e) {
-			System.out.println("phone");
-			e.printStackTrace();
-		}
+		this.phone = this.getCleanKey(phone);
+
 	}
 	
 	public String generateKey(){
@@ -73,9 +59,9 @@ public class AddressBookKey {
 		return name + "::" + lastname + "::" + phone;
 	}
 	
-	private String getCleanKey(String key) throws EmptyKeyException {
+	private String getCleanKey(String key) throws ParameterStringIsEmptyException {
 		if (key == null || key.isEmpty())
-			throw new EmptyKeyException("The key: " + key + " is empty");
+			throw new ParameterStringIsEmptyException("Leider ist der Parameter leer.");
 		return key.trim().toLowerCase();
 	}
 

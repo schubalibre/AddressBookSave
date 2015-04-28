@@ -1,5 +1,7 @@
 package classes;
 
+import interfaces.AddressBookInterface;
+
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,7 +50,7 @@ public class AddressBookUi extends Application {
 	
 	private TextField searchfield;
 
-	private static AddressBook book = new AddressBook();
+	private static AddressBookInterface book = new AddressBook();
 	
 	public AddressBookUi(){
 		

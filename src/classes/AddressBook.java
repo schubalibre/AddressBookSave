@@ -13,34 +13,47 @@ import exceptions.InvalidContactException;
 import exceptions.KeyIsNotInUseException;
 import exceptions.ParameterStringIsEmptyException;
 
-public class AddressBook /*implements AddressBookInterface*/ {
+public class AddressBook implements AddressBookInterface {
 
 	/*
-	 * Die Idee des AddressBook ist es Kontakte mit zwei Schlüsseln zu
-	 * speichern. Damit wir dies bewerkstelligen können speichern wir die
-	 * Kontaktdaten zwei mal in namesMap ab. Somit kann unter dem Namen und
-	 * unter dem Nachnamen gesucht werden.
+	 * AddressBook - Die Aufgabe der Klasse AddressBook ist es, Kontakte vom Typ ContactDetails 
+	 * zu speichern, zu ändern, zu suchen und zu löschen. Dabei werden die Kontakte durch einen Schlüssel 
+	 * in der Treemap gespeichert, der sich aus dem Namen, Nachnamen und der Telefonnummer ergibt.
+	 * Damit die Originalität des Schlüssels gewährleistet wird, werden Namen, Nachnamen und Telefonnummer 
+	 * durch einen doppelten Doppelpunkt getrennt. (hans::müller::123456789). 
+	 * Dies ermöglicht uns auch direkt in den Schlüsseln zu suchen da der Schlüssel immer noch "Klardaten" enthält.
+	 * Somit müssen die Kontakte nicht mehr doppelt gespeichert werden und es ist möglich Kontakte mit gleichen 
+	 * Vornamen oder Nachnamen zu speichern. 
 	 * 
-	 * robert -> Robert, Dziuba, 123456789, ..... dziuba -> Robert, Dziuba,
-	 * 123456789, .....
-	 * 
-	 * Immer daran denken das man die ganze Maschine von außen nicht sieht ;)
-	 */
+	 * */
 
-	// eine Maps für name und lastName
+	/**
+	 * Unsere Treemap die die Speicherung der Kontakte übernimmt
+	 */
 	private Map<String, ContactDetails> namesMap;
 	
+	
+	/**
+	 * Standardkonstruktor - erstellt unsere Treemap
+	 */
 	public AddressBook() {
 		namesMap = new TreeMap<>();
 	}
 	
+	/**
+	 * Kopierkonstruktor - nimmt ein typgleiches Objekt über seinen Parameter entgegen und erstellt aus diesem Objekt die Startwerte für seinen eigenen Zustand
+	 * @param obj
+	 */
 	public AddressBook(AddressBook obj) {
 		namesMap = obj.namesMap;
 	}
 	
-	
+	/* (non-Javadoc)
+	 * @see classes.AddressBookInterface#getDetails(java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
 	public ContactDetails getDetails(String name, String lastname, String phone) throws DetailsNotFoundException, ParameterStringIsEmptyException {
-		
+		// NEU - wir generieren unseren Key
 		String key = this.generateKey(name, lastname, phone);
 
 		if (!this.keyInUse(key))
@@ -50,24 +63,31 @@ public class AddressBook /*implements AddressBookInterface*/ {
 		return namesMap.get(key);
 	}
 
-	
+	/* (non-Javadoc)
+	 * @see classes.AddressBookInterface#keyInUse(java.lang.String)
+	 */
+	@Override
 	public boolean keyInUse(String key) throws ParameterStringIsEmptyException {
-		// key wird hier aufbereitet trim toLowerCase
-		key = this.getCleanKey(key);
+		// key wird hier aufbereitet - trim und toLowerCase
+		key = this.getCleanParameter(key);
 		// es wird geschaut, ob namesMap den key besitzt (true oder false)
 		return namesMap.containsKey(key);
 	}
 
-	
+	/* (non-Javadoc)
+	 * @see classes.AddressBookInterface#addDetails(classes.ContactDetails)
+	 */
+	@Override
 	public void addDetails(ContactDetails details) throws DuplicateKeyException, InvalidContactException, ParameterStringIsEmptyException{
-		
+		// wir überprüfen, ob details etwas enthält
 		if (details != null) {
-
+			// NEU - wir generieren unseren Key
 			String key = this.generateKey(details);
 			
-			// Kontrolle ob der name oder lastName schon benutzt wird
+			// Kontrolle ob der Key schon benutzt wird
 			if (this.keyInUse(key))
 				throw new DuplicateKeyException("Der Kontakt " + details.getVorname() +", " + details.getNachname() +" ist schon vorhanden.");
+			
 				// alles klar wir kreieren die zwei Elemente für unsere Map
 				namesMap.put(key, details);
 		}else{
@@ -75,62 +95,91 @@ public class AddressBook /*implements AddressBookInterface*/ {
 		}
 	}
 	
-	
+	/* (non-Javadoc)
+	 * @see classes.AddressBookInterface#changeDetails(java.lang.String, classes.ContactDetails)
+	 */
+	@Override
 	public void changeDetails(String oldKey, ContactDetails details) throws DuplicateKeyException, InvalidContactException, KeyIsNotInUseException, ParameterStringIsEmptyException {
-		// oldKey wird hier aufbereitet trim toLowerCase
-		oldKey = this.getCleanKey(oldKey);
-		// wenn der Eintrag existiert.....
-		if (this.keyInUse(oldKey) && details!= null) {
-			// wir löschen als erstes die alten Einträge
+		
+		// wir überprüfen, ob details etwas enthält
+		if (details != null) {
+			// oldKey wird hier aufbereitet: trim und toLowerCase
+			oldKey = this.getCleanParameter(oldKey);
+			
+			if (!this.keyInUse(oldKey)) 
+				throw new KeyIsNotInUseException("Leider konnten kein Kontakte mit dem Key '" + oldKey + "' gefunden werden!");
+			// wenn der Eintrag existiert.....
+				
+			// löschen wir als erstes die alten Einträge mit Hilfe des alten Keys
 			this.removeDetails(oldKey);
 
-			// dann nutzten wir unsere Methode addDetails um den geänderten
-			// Eintrag neu einzutragen
+			// dann nutzten wir unsere Methode addDetails um den geänderten Kontakt neu einzutragen
 			this.addDetails(details);
-
-			/*
-			 * WICHTIG! um unsere Daten konsistent zu halten verändern wir sie
-			 * nicht sondern löschen die alten Einträge erst und kreieren dann
-			 * den neuen Eintrag neu. Damit bleiben beide Maps konsistent
-			 */
+		
+		}else{
+			throw new InvalidContactException("Es sind leider keine Kontaktdaten vorhanden.");
 		}
 	}
 
-	
+	/* (non-Javadoc)
+	 * @see classes.AddressBookInterface#search(java.lang.String)
+	 */
+	@Override
 	public ContactDetails[] search(String keyPrefix) throws ParameterStringIsEmptyException {
-
-		keyPrefix = this.getCleanKey(keyPrefix);
-
+		// keyPrefix wird hier aufbereitet: trim und toLowerCase
+		keyPrefix = this.getCleanParameter(keyPrefix);
+		// wenn keyPrefix nicht leer ist
 		if (keyPrefix.length() > 0) {
+			// erstellen wir eine ArrayList, da wir noch nicht wissen wie viele Kontakte wir finden werden
 			List<ContactDetails> matchedDetails = new ArrayList<ContactDetails>();
+			// wir holen uns alle Keys
 			for (String key : namesMap.keySet()) {
+				// und wenn ein key die Suchparameter enthält
 				if (key.contains(keyPrefix)) {
+					//splitten sie in ihre einzelnen Bestandteile (hans::müller::123456789 -> hans, müller, 123456789) 
 					String[] keyArray = key.split("::");
+					// und holen uns die ContactDetails
 					matchedDetails.add(this.getDetails(keyArray[0],keyArray[1],keyArray[2]));
 				}
 			}
+			// wir geben ein Array mit all unseren Kontakten zurück
 			return matchedDetails.toArray( new ContactDetails[matchedDetails.size()] );
 		}
+		// sonst nichts - es werden keine Exception geworfen, da es seien kann, dass nichts gefunden wurde
 		return null;
 	}
 	
+	/* (non-Javadoc)
+	 * @see classes.AddressBookInterface#getAllContacts()
+	 */
+	@Override
 	public ContactDetails[] getAllContacts() throws DetailsNotFoundException, ParameterStringIsEmptyException {
-		
+		// wir erstellen eine ArrayList, da wir noch nicht wissen wie viele Kontakte wir haben
 		List<ContactDetails> matchedDetails = new ArrayList<ContactDetails>();
+		// wir holen uns alle Keys
 		for (String key : namesMap.keySet()) {
+				//splitten sie in ihre einzelnen Bestandteile (hans::müller::123456789 -> hans, müller, 123456789) 
 				String[] keyArray = key.split("::");
+				// und holen uns die ContactDetails
 				matchedDetails.add(this.getDetails(keyArray[0],keyArray[1],keyArray[2]));
 		}
+		// wir geben ein Array mit all unseren Kontakten zurück
 		return matchedDetails.toArray( new ContactDetails[matchedDetails.size()] );
 	}
 
-	
+	/* (non-Javadoc)
+	 * @see classes.AddressBookInterface#getNumberOfEntries()
+	 */
+	@Override
 	public int getNumberOfEntries() {
-		// gibt die größe der Liste zurück
+		// gibt die Größe der Liste zurück
 		return namesMap.size();
 	}
 
-	
+	/* (non-Javadoc)
+	 * @see classes.AddressBookInterface#removeDetails(java.lang.String)
+	 */
+	@Override
 	public void removeDetails(String key) throws KeyIsNotInUseException, ParameterStringIsEmptyException{
 		// wir löschen aus beiden Maps die Einträge
 		if (!this.keyInUse(key))
@@ -140,37 +189,44 @@ public class AddressBook /*implements AddressBookInterface*/ {
 			namesMap.remove(key);
 	}
 
-	private String getCleanKey(String key) throws ParameterStringIsEmptyException{
+	/**
+	 * getCleanParameter - säubert unser Parameter und gibt sie in Kleinbuchstaben zurück. Kontrolliert ob die Parameter nicht leer sind.
+	 * @param key
+	 * @return String
+	 * @throws ParameterStringIsEmptyException
+	 */
+	private String getCleanParameter(String key) throws ParameterStringIsEmptyException{
+		// Überprüfung ob die Parameter null/ leer sind
 		if (key == null || key.isEmpty())
 			throw new ParameterStringIsEmptyException("Leider ist der Parameter leer.");
 		
 			return key.trim().toLowerCase();
 	}
-	
-	public String toString(){
-		
-		String allContacts = null;
-		for(String key:namesMap.keySet()) {
-			allContacts = allContacts + namesMap.get(key).toString();
-		}
-		
-		return allContacts;
-	}
-	
+
+	/* (non-Javadoc)
+	 * @see classes.AddressBookInterface#generateKey(java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
 	public String generateKey(String name, String lastname, String phone) throws ParameterStringIsEmptyException{
+		// wir säubern die Keys
+		name = this.getCleanParameter(name);
+		lastname =this.getCleanParameter(lastname);
+		// wenn kein Telefon vorhanden ist wird eine Defaultnummer erstellt und somit die Speicherung ohne Telefon ermöglicht.
+		phone = (phone.isEmpty()) ? "0000000000" : this.getCleanParameter(phone); 
 		
-		name = this.getCleanKey(name);
-		lastname =this.getCleanKey(lastname);
-		phone = (phone.isEmpty()) ? "0000000000" : this.getCleanKey(phone);
-		
+		// Der Key wird durch den Namen + Nachnamen + Telefon generiert und somit eindeutig gemacht (separiert werden die Strings durch :: um die Eindeutigkeit zu gewähren).
 		return name + "::" + lastname + "::" + phone;
 	}
 	
+	/* (non-Javadoc)
+	 * @see classes.AddressBookInterface#generateKey(classes.ContactDetails)
+	 */
+	@Override
 	public String generateKey(ContactDetails details) throws ParameterStringIsEmptyException{
-		
-		String name = this.getCleanKey(details.getVorname());
-		String lastname = this.getCleanKey(details.getNachname());
-		String phone = (details.getTelefonnummer().isEmpty()) ? "0000000000": this.getCleanKey(details.getTelefonnummer());
+		// gleiche Funktion wie oben nur nimmt stattdessen ein Objekt ContactDetails entgegen
+		String name = this.getCleanParameter(details.getVorname());
+		String lastname = this.getCleanParameter(details.getNachname());
+		String phone = (details.getTelefonnummer().isEmpty()) ? "0000000000": this.getCleanParameter(details.getTelefonnummer());
 		
 		return name + "::" + lastname + "::" + phone;
 	}

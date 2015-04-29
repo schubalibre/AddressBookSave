@@ -1,185 +1,241 @@
 package classes;
 
+import java.security.SecureRandom;
+import java.util.Random;
+
+import exceptions.DetailsNotFoundException;
+import exceptions.DuplicateKeyException;
+import exceptions.InvalidContactException;
+import exceptions.ParameterStringIsEmptyException;
 import javafx.application.Application;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.scene.text.Font;
+import javafx.scene.input.MouseEvent;
 
 public class AddressBookSurface extends Application {
-
-	private TableView<Person> tabelle = new TableView<Person>();
-	private final ObservableList<Person> daten = FXCollections
-			.observableArrayList(new Person("Robert", "Dziuba", "0123456789",
-					"robertodziuba@gmail.com", "Sonntagstraße 10"), new Person(
-					"Inga", "Schwarze", "8756473829", "inga.schwarze@web.de",
-					"Tegeler Weg 107"), new Person("Tobias", "Klatt",
-					"01236757575", "tobiasklatt@web.de", "Hinter dem Mond 4"));
+	
+	private static char[] VALID_CHARACTERS =
+		    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456879".toCharArray();
+	
+	private TableView<ContactDetails> tabelle = new TableView<ContactDetails>();
+	private final ObservableList<ContactDetails> daten = FXCollections.observableArrayList();
+	private AddressBook book = new AddressBook();
+	
+	final TextField addVorname = new TextField(), addNachname = new TextField(), addTelefonnummer = new TextField(), addMail = new TextField(), addAdresse = new TextField();
+	
 	final HBox hbox = new HBox();
 	final HBox hbox2 = new HBox();
+	
+	public AddressBookSurface(){
+		this.fillAddressBook();
+	}
 
 	public static void main(String[] args) {
 		launch(args);
 	}
+	
+	
 
 	@Override
 	public void start(Stage primaryStage) {
 
 		primaryStage.setTitle("Cooles Adressbuch");
+		
+		final Label titel = new Label("Unser Adressbuch");
+		titel.setFont(new Font("Arial", 20));
+		
 		// Group group = new Group();
 		Scene scene = new Scene(new Group());
 		primaryStage.setWidth(600);
 		primaryStage.setHeight(700);
-		final Label titel = new Label("Unser Adressbuch");
-		titel.setFont(new Font("Arial", 20));
-		tabelle.setEditable(true);
-		// titel.setAlignment(Pos.CENTER);
-		TableColumn vorname = new TableColumn("Vorname");
-		vorname.setMinWidth(100);
-		vorname.setCellValueFactory(new PropertyValueFactory<Person, String>(
-				"vorname"));
-		TableColumn nachname = new TableColumn("Nachname");
-		nachname.setMinWidth(100);
-		nachname.setCellValueFactory(new PropertyValueFactory<Person, String>(
-				"nachname"));
-		TableColumn telefonnummer = new TableColumn("Telefonnummer");
-		telefonnummer.setMinWidth(120);
-		telefonnummer
-				.setCellValueFactory(new PropertyValueFactory<Person, String>(
-						"telefonnummer"));
-		TableColumn email = new TableColumn("E-Mail");
-		email.setMinWidth(100);
-		email.setCellValueFactory(new PropertyValueFactory<Person, String>(
-				"mail"));
-		TableColumn adresse = new TableColumn("Adresse");
-		adresse.setMinWidth(100);
-		adresse.setCellValueFactory(new PropertyValueFactory<Person, String>(
-				"adresse"));
-		tabelle.setItems(daten);
-		tabelle.getColumns().addAll(vorname, nachname, telefonnummer, email,
-				adresse);
-		final TextField addVorname = new TextField();
-		addVorname.setPromptText("Vorname");
-		addVorname.setMaxWidth(vorname.getPrefWidth());
-		final TextField addNachname = new TextField();
-		addNachname.setPromptText("Nachname");
-		addNachname.setMaxWidth(nachname.getPrefWidth());
-		final TextField addTelefonnummer = new TextField();
-		addTelefonnummer.setPromptText("Telefonnummer");
-		addTelefonnummer.setMaxWidth(telefonnummer.getPrefWidth());
-		final TextField addMail = new TextField();
-		addMail.setPromptText("E-Mail");
-		addMail.setMaxWidth(email.getPrefWidth());
-		final TextField addAdresse = new TextField();
-		addAdresse.setPromptText("Adresse");
-		addAdresse.setMaxWidth(adresse.getPrefWidth());
-		final Button addButton = new Button("Hinzufügen");
-		addButton.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent e) {
-				daten.add(new Person(addVorname.getText(), addNachname
-						.getText(), addTelefonnummer.getText(), addMail
-						.getText(), addAdresse.getText()));
-				addVorname.clear();
-				addNachname.clear();
-				addTelefonnummer.clear();
-				addMail.clear();
-				addAdresse.clear();
-			}
-		});
-		final Button removeButton = new Button("Entfernen");
-		final Button changeButton = new Button("Ändern");
-		final Button searchButton = new Button("Suchen");
+
+		this.erstelleTabelle();
+		
+		this.erstelleFormular();
+		
+		
 		hbox.getChildren().addAll(addVorname, addNachname, addTelefonnummer,
 				addMail, addAdresse);
 		hbox.setSpacing(3);
 		hbox.setAlignment(Pos.CENTER);
-		hbox2.getChildren().addAll(addButton, removeButton, changeButton,
-				searchButton);
+		hbox2.getChildren().addAll(addButton, removeButton, changeButton,searchButton);
 		hbox2.setSpacing(3);
 		hbox2.setAlignment(Pos.CENTER);
+		
 		final VBox vbox = new VBox();
 		vbox.setAlignment(Pos.CENTER);
 		vbox.setSpacing(5);
 		vbox.setPadding(new Insets(10, 0, 0, 10));
+		
 		vbox.getChildren().addAll(titel, tabelle, hbox, hbox2);
+		
 		((Group) scene.getRoot()).getChildren().addAll(vbox);
 
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}
-
-	public static class Person {
-		private SimpleStringProperty vorname;
-		private SimpleStringProperty nachname;
-		private SimpleStringProperty telefonnummer;
-		private SimpleStringProperty email;
-		private SimpleStringProperty adresse;
-
-		private Person(String vname, String nname, String nummer, String mail,
-				String adress) {
-			this.vorname = new SimpleStringProperty(vname);
-			this.nachname = new SimpleStringProperty(nname);
-			this.telefonnummer = new SimpleStringProperty(nummer);
-			this.email = new SimpleStringProperty(mail);
-			this.adresse = new SimpleStringProperty(adress);
+	
+	private void erstelleTabelle(){
+		
+		tabelle.setEditable(true);
+		
+		// titel.setAlignment(Pos.CENTER);
+		TableColumn vorname = new TableColumn("Vorname");
+		vorname.setMinWidth(100);
+		vorname.setCellValueFactory(new PropertyValueFactory<ContactDetails, String>(
+				"vorname"));
+		TableColumn nachname = new TableColumn("Nachname");
+		nachname.setMinWidth(100);
+		nachname.setCellValueFactory(new PropertyValueFactory<ContactDetails, String>(
+				"nachname"));
+		TableColumn telefonnummer = new TableColumn("Telefonnummer");
+		telefonnummer.setMinWidth(120);
+		telefonnummer
+				.setCellValueFactory(new PropertyValueFactory<ContactDetails, String>(
+						"telefonnummer"));
+		TableColumn email = new TableColumn("E-Mail");
+		email.setMinWidth(100);
+		email.setCellValueFactory(new PropertyValueFactory<ContactDetails, String>(
+				"mail"));
+		TableColumn adresse = new TableColumn("Adresse");
+		adresse.setMinWidth(100);
+		adresse.setCellValueFactory(new PropertyValueFactory<ContactDetails, String>(
+				"adresse"));
+		
+		tabelle.getColumns().addAll(vorname, nachname, telefonnummer, email,
+				adresse);
+		
+		
+		ObservableList<ContactDetails> daten = FXCollections.observableArrayList();
+		
+		ContactDetails[] allContacts = null;
+		
+		try {
+			allContacts = book.getAllContacts();
+		} catch (DetailsNotFoundException | ParameterStringIsEmptyException e1) {
+			// TODO Auto-generated catch block
+			System.out.println(e1.getMessage());
 		}
-
-		public String getVorname() {
-			return vorname.get();
+		
+		for(ContactDetails contact : allContacts ){
+			daten.add(contact);
 		}
+		
+		tabelle.setItems(daten);
+		
+		tabelle.setOnMouseClicked( (MouseEvent e) -> fuelleFelderHandler(e));
+	}
+	
+	private void erstelleFormular(){
+		final TextField addVorname = new TextField();
+		addVorname.setPromptText("Vorname");
+		
+		final TextField addNachname = new TextField();
+		addNachname.setPromptText("Nachname");
+		
+		final TextField addTelefonnummer = new TextField();
+		addTelefonnummer.setPromptText("Telefonnummer");
+		
+		final TextField addMail = new TextField();
+		addMail.setPromptText("E-Mail");
+		
+		final TextField addAdresse = new TextField();
+		addAdresse.setPromptText("Adresse");
+		
+		final Button addButton = new Button("Hinzufügen");
+		addButton.setOnAction((ActionEvent event) -> addContact(event));
 
-		public void setVorname(String vname) {
-			vorname.set(vname);
-		}
+		final Button removeButton = new Button("Entfernen");
+		final Button changeButton = new Button("Ändern");
+		final Button searchButton = new Button("Suchen");
+		
 
-		public String getNachname() {
-			return nachname.get();
-		}
+	}
+	
+	private void addContact(ActionEvent e){
+		
+		ContactDetails newContact = new ContactDetails(
+				addVorname.getText(), 
+				addNachname.getText(), 
+				addTelefonnummer.getText(), 
+				addMail.getText(), 
+				addAdresse.getText());
 
-		public void setNachname(String nname) {
-			nachname.set(nname);
-		}
-
-		public String getTelefonnummer() {
-			return telefonnummer.get();
-		}
-
-		public void setTelefonnummer(String nummer) {
-			telefonnummer.set(nummer);
-		}
-
-		public String getMail() {
-			return email.get();
-		}
-
-		public void setMail(String mail) {
-			email.set(mail);
-		}
-
-		public String getAdresse() {
-			return adresse.get();
-		}
-
-		public void setAdresse(String adress) {
-			adresse.set(adress);
+		try {
+			book.addDetails(newContact);
+			
+			daten.add(newContact);
+			
+			addVorname.clear();
+			addNachname.clear();
+			addTelefonnummer.clear();
+			addMail.clear();
+			addAdresse.clear();
+			
+		} catch (DuplicateKeyException | InvalidContactException
+				| ParameterStringIsEmptyException e1) {
+			// TODO Auto-generated catch block
+			System.out.println(e1.getMessage());
 		}
 	}
+	
+	private void fuelleFelderHandler(MouseEvent e){
+		
+		ContactDetails details = tabelle.getSelectionModel().getSelectedItem();
+		
+		addVorname.setText(details.getVorname());
+		addNachname.setText(details.getNachname());
+		addTelefonnummer.setText(details.getTelefonnummer());
+		addMail.setText(details.getMail());
+		addAdresse.setText(details.getAdresse());
+		
+		System.out.println("hallo");
+	}
+	
+	public void fillAddressBook(){
+		
+		for(int i = 0; i < 100; i++){
+			ContactDetails a = new ContactDetails(
+					this.csRandomAlphaNumericString(5), 
+					this.csRandomAlphaNumericString(6),
+					this.csRandomAlphaNumericString(9),
+					this.csRandomAlphaNumericString(12),
+					this.csRandomAlphaNumericString(25)
+					);	
+			try {
+				book.addDetails(a);
+			} catch (DuplicateKeyException | InvalidContactException
+					| ParameterStringIsEmptyException e) {
+				System.out.println(e.getMessage());
+			}
+		}
+
+	}
+	
+	private String csRandomAlphaNumericString(int numChars) {
+		SecureRandom srand = new SecureRandom();
+	    Random rand = new Random();
+	    char[] buff = new char[numChars];
+
+	    for (int i = 0; i < numChars; ++i) {
+	      // reseed rand once you've used up all available entropy bits
+	      if ((i % 10) == 0) {
+	          rand.setSeed(srand.nextLong()); // 64 bits of random!
+	      }
+	      buff[i] = VALID_CHARACTERS[rand.nextInt(VALID_CHARACTERS.length)];
+	    }
+	    return new String(buff);
+	}
+	
+	
 }

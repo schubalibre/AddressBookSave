@@ -67,21 +67,13 @@ public interface AddressBookInterface {
 
 	/**
 	 * search - such mit Hilfe des keyPrefix in den keys der Treemap und gibt ein ContactDetails Arrray mit allen gefundenen Kontakten zurück
+	 * bei leerem keyPrefix werden alle Kontakte zurückgegeben
 	 * @param keyPrefix
 	 * @return ContactDetails[]
 	 * @throws ParameterStringIsEmptyException
 	 */
 	public abstract ContactDetails[] search(String keyPrefix)
 			throws ParameterStringIsEmptyException, DetailsNotFoundException;
-
-	/**
-	 * getAllContacts - eine Methode die uns auf einen Schlag alle Kontakte zurückgibt
-	 * @return ContactDetails[]
-	 * @throws DetailsNotFoundException
-	 * @throws ParameterStringIsEmptyException
-	 */
-	public abstract ContactDetails[] getAllContacts()
-			throws DetailsNotFoundException, ParameterStringIsEmptyException;
 
 	/**
 	 * getNumberOfEntries - gibt die Menge unsere Einträge zurück

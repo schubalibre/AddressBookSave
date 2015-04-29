@@ -6,10 +6,12 @@ import java.util.Random;
 import exceptions.DetailsNotFoundException;
 import exceptions.DuplicateKeyException;
 import exceptions.InvalidContactException;
+import exceptions.KeyIsNotInUseException;
 import exceptions.ParameterStringIsEmptyException;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -29,12 +31,12 @@ public class AddressBookSurface extends Application {
 	
 	private TableView<ContactDetails> tabelle = new TableView<ContactDetails>();
 	private final ObservableList<ContactDetails> daten = FXCollections.observableArrayList();
+	
 	private AddressBook book = new AddressBook();
 	
 	final TextField addVorname = new TextField(), addNachname = new TextField(), addTelefonnummer = new TextField(), addMail = new TextField(), addAdresse = new TextField();
 	
-	final HBox hbox = new HBox();
-	final HBox hbox2 = new HBox();
+	private String key = null; 
 	
 	public AddressBookSurface(){
 		this.fillAddressBook();
@@ -43,8 +45,6 @@ public class AddressBookSurface extends Application {
 	public static void main(String[] args) {
 		launch(args);
 	}
-	
-	
 
 	@Override
 	public void start(Stage primaryStage) {
@@ -54,42 +54,13 @@ public class AddressBookSurface extends Application {
 		final Label titel = new Label("Unser Adressbuch");
 		titel.setFont(new Font("Arial", 20));
 		
-		// Group group = new Group();
-		Scene scene = new Scene(new Group());
-		primaryStage.setWidth(600);
-		primaryStage.setHeight(700);
-
-		this.erstelleTabelle();
-		
-		this.erstelleFormular();
-		
-		
-		hbox.getChildren().addAll(addVorname, addNachname, addTelefonnummer,
-				addMail, addAdresse);
-		hbox.setSpacing(3);
-		hbox.setAlignment(Pos.CENTER);
-		hbox2.getChildren().addAll(addButton, removeButton, changeButton,searchButton);
-		hbox2.setSpacing(3);
-		hbox2.setAlignment(Pos.CENTER);
-		
-		final VBox vbox = new VBox();
-		vbox.setAlignment(Pos.CENTER);
-		vbox.setSpacing(5);
-		vbox.setPadding(new Insets(10, 0, 0, 10));
-		
-		vbox.getChildren().addAll(titel, tabelle, hbox, hbox2);
-		
-		((Group) scene.getRoot()).getChildren().addAll(vbox);
-
-		primaryStage.setScene(scene);
-		primaryStage.show();
-	}
 	
-	private void erstelleTabelle(){
+		/*******************************************************************
+		erstelle die Tabellenkopf
+		*******************************************************************/
 		
 		tabelle.setEditable(true);
 		
-		// titel.setAlignment(Pos.CENTER);
 		TableColumn vorname = new TableColumn("Vorname");
 		vorname.setMinWidth(100);
 		vorname.setCellValueFactory(new PropertyValueFactory<ContactDetails, String>(
@@ -115,16 +86,82 @@ public class AddressBookSurface extends Application {
 		tabelle.getColumns().addAll(vorname, nachname, telefonnummer, email,
 				adresse);
 		
+		this.erstelleTabelle(null);
 		
+		/*******************************************************************
+		erstelle das Formular
+		*******************************************************************/
+		
+		addVorname.setPromptText("Vorname");
+		addVorname.setMaxWidth(vorname.getPrefWidth());
+		
+		addNachname.setPromptText("Nachname");
+		addNachname.setMaxWidth(nachname.getPrefWidth());
+
+		addTelefonnummer.setPromptText("Telefonnummer");
+		addTelefonnummer.setMaxWidth(telefonnummer.getPrefWidth());
+
+		addMail.setPromptText("E-Mail");
+		addMail.setMaxWidth(email.getPrefWidth());
+
+		addAdresse.setPromptText("Adresse");
+		addAdresse.setMaxWidth(adresse.getPrefWidth());
+		
+		final Button addButton = new Button("Hinzufügen");
+		addButton.setOnAction((ActionEvent event) -> fuegeKontaktHinzuHandler(event));
+
+		final Button removeButton = new Button("Entfernen");
+		removeButton.setOnAction((ActionEvent event) -> loescheKontaktHandler(event));
+		
+		final Button changeButton = new Button("Ändern");
+		changeButton.setOnAction((ActionEvent event) -> aendereKontaktHandler(event));
+		
+		final Button searchButton = new Button("Suchen");
+		searchButton.setOnAction((ActionEvent event) -> sucheKontaktHandler(event));
+		
+		final HBox hbox = new HBox();
+		final HBox hbox2 = new HBox();
+		hbox.getChildren().addAll(addVorname, addNachname, addTelefonnummer,addMail, addAdresse);
+		hbox.setSpacing(3);
+		hbox.setAlignment(Pos.CENTER);
+		hbox2.getChildren().addAll(addButton, removeButton, changeButton,searchButton);
+		hbox2.setSpacing(3);
+		hbox2.setAlignment(Pos.CENTER);
+		
+		final VBox vbox = new VBox();
+		vbox.setAlignment(Pos.CENTER);
+		vbox.setSpacing(5);
+		vbox.setPadding(new Insets(10, 0, 0, 10));
+		
+		
+		/*******************************************************************
+		alles zusammenfügen
+		*******************************************************************/
+		
+		vbox.getChildren().addAll(titel, tabelle, hbox, hbox2);
+		
+		Group group = new Group();
+		group.getChildren().addAll(vbox);
+		
+		Scene scene = new Scene(group, 600, 700);
+		primaryStage.setScene(scene);
+		primaryStage.show();
+	}
+	
+	private void erstelleTabelle(ContactDetails[] array) {
 		ObservableList<ContactDetails> daten = FXCollections.observableArrayList();
 		
 		ContactDetails[] allContacts = null;
 		
-		try {
-			allContacts = book.getAllContacts();
-		} catch (DetailsNotFoundException | ParameterStringIsEmptyException e1) {
-			// TODO Auto-generated catch block
-			System.out.println(e1.getMessage());
+		if(array == null){
+			try {
+				allContacts = book.search("");
+			} catch (DetailsNotFoundException | ParameterStringIsEmptyException e1) {
+				// TODO Auto-generated catch block
+				System.out.println(e1.getMessage());
+			}
+		}else{
+			allContacts = array;
 		}
 		
 		for(ContactDetails contact : allContacts ){
@@ -133,36 +170,11 @@ public class AddressBookSurface extends Application {
 		
 		tabelle.setItems(daten);
 		
+		// wenn wir auf ein Listenelement klicken
 		tabelle.setOnMouseClicked( (MouseEvent e) -> fuelleFelderHandler(e));
 	}
 	
-	private void erstelleFormular(){
-		final TextField addVorname = new TextField();
-		addVorname.setPromptText("Vorname");
-		
-		final TextField addNachname = new TextField();
-		addNachname.setPromptText("Nachname");
-		
-		final TextField addTelefonnummer = new TextField();
-		addTelefonnummer.setPromptText("Telefonnummer");
-		
-		final TextField addMail = new TextField();
-		addMail.setPromptText("E-Mail");
-		
-		final TextField addAdresse = new TextField();
-		addAdresse.setPromptText("Adresse");
-		
-		final Button addButton = new Button("Hinzufügen");
-		addButton.setOnAction((ActionEvent event) -> addContact(event));
-
-		final Button removeButton = new Button("Entfernen");
-		final Button changeButton = new Button("Ändern");
-		final Button searchButton = new Button("Suchen");
-		
-
-	}
-	
-	private void addContact(ActionEvent e){
+	private ContactDetails generiereDetails(){
 		
 		ContactDetails newContact = new ContactDetails(
 				addVorname.getText(), 
@@ -170,18 +182,78 @@ public class AddressBookSurface extends Application {
 				addTelefonnummer.getText(), 
 				addMail.getText(), 
 				addAdresse.getText());
+		
+		return newContact;
+	}
+	
+	public void leereFelder(){
+		addVorname.clear();
+		addNachname.clear();
+		addTelefonnummer.clear();
+		addMail.clear();
+		addAdresse.clear();
+	}
+
+	private void sucheKontaktHandler(ActionEvent event) {
+		
+		String name = addVorname.getText();
+		String lastname = addNachname.getText(); 
+		String phone = addTelefonnummer.getText(); 
+		String email = addMail.getText(); 
+		String address = addAdresse.getText();
+		
+		String keyPrefix = name;
+
+		ContactDetails[] matched = null;
+		
+		try {
+			matched = book.search(keyPrefix);
+		} catch (ParameterStringIsEmptyException | DetailsNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.out.println(e.getMessage());
+		}
+		
+		
+		this.erstelleTabelle(matched);
+	}
+
+	private void aendereKontaktHandler(ActionEvent event) {
+		
+		ContactDetails details = this.generiereDetails();
+		
+		try {
+			book.changeDetails(key, details);
+			key = book.generateKey(details);
+			this.erstelleTabelle(null);
+		} catch (DuplicateKeyException | InvalidContactException
+				| KeyIsNotInUseException | ParameterStringIsEmptyException e) {
+			// TODO Auto-generated catch block
+			System.out.println(e.getMessage());
+		}
+	}
+
+	private void loescheKontaktHandler(ActionEvent event) {
+		try {
+			book.removeDetails(key);
+			key = null;
+			this.leereFelder();
+			this.erstelleTabelle(null);
+		} catch (KeyIsNotInUseException | ParameterStringIsEmptyException e) {
+			// TODO Auto-generated catch block
+			System.out.println(e.getMessage());
+		}
+	}
+
+	private void fuegeKontaktHinzuHandler(ActionEvent e){
+		
+		ContactDetails newContact = this.generiereDetails();
 
 		try {
 			book.addDetails(newContact);
 			
 			daten.add(newContact);
-			
-			addVorname.clear();
-			addNachname.clear();
-			addTelefonnummer.clear();
-			addMail.clear();
-			addAdresse.clear();
-			
+			this.leereFelder();
+			this.erstelleTabelle(null);
 		} catch (DuplicateKeyException | InvalidContactException
 				| ParameterStringIsEmptyException e1) {
 			// TODO Auto-generated catch block
@@ -199,9 +271,14 @@ public class AddressBookSurface extends Application {
 		addMail.setText(details.getMail());
 		addAdresse.setText(details.getAdresse());
 		
-		System.out.println("hallo");
+		try {
+			key = book.generateKey(details);
+		} catch (ParameterStringIsEmptyException e1) {
+			// TODO Auto-generated catch block
+			System.out.println(e1.getMessage());
+		}
 	}
-	
+
 	public void fillAddressBook(){
 		
 		for(int i = 0; i < 100; i++){

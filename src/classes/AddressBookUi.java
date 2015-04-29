@@ -144,7 +144,7 @@ public class AddressBookUi extends Application {
 		if(contactDetails == null){
 
 				try {
-					contactDetails = book.getAllContacts();
+					contactDetails = book.search("");
 				} catch (DetailsNotFoundException | ParameterStringIsEmptyException e1) {
 					this.generateErrorModal(e1.getMessage());
 				}

@@ -140,44 +140,35 @@ public class AddressBook implements AddressBookInterface {
 	@Override
 	public ContactDetails[] search(String keyPrefix) throws ParameterStringIsEmptyException, DetailsNotFoundException {
 		// keyPrefix wird hier aufbereitet: trim und toLowerCase
-		keyPrefix = this.getCleanParameter(keyPrefix);
-		// wenn keyPrefix nicht leer ist
-		if (keyPrefix.length() > 0) {
-			// erstellen wir eine ArrayList, da wir noch nicht wissen wie viele Kontakte wir finden werden
-			List<ContactDetails> matchedDetails = new ArrayList<ContactDetails>();
+		keyPrefix = (!keyPrefix.isEmpty()) ? keyPrefix.trim().toLowerCase() : "";
+		
+		// erstellen wir eine ArrayList, da wir noch nicht wissen wie viele Kontakte wir finden werden
+		List<ContactDetails> matchedDetails = new ArrayList<ContactDetails>();
+		
+		//wir teilen unsere Suchparameter in die Teile die durch ein Leerzeichen getrennt wurden 
+		String[] keyPrefixArray = keyPrefix.split(" ");
+		
+		// und schauen jeden einzelnen Teilprefix an
+		for (String prefix : keyPrefixArray) {
 			// wir holen uns alle Keys
 			for (String key : namesMap.keySet()) {
 				// und wenn ein key die Suchparameter enthält
-				if (key.contains(keyPrefix)) {
+				if (key.contains(prefix)) {
 					//splitten sie in ihre einzelnen Bestandteile (hans::müller::123456789 -> hans, müller, 123456789) 
 					String[] keyArray = key.split("::");
 					// und holen uns die ContactDetails
-					matchedDetails.add(this.getDetails(keyArray[0],keyArray[1],keyArray[2],keyArray[3],keyArray[4]));
+					
+					ContactDetails details = this.getDetails(keyArray[0],keyArray[1],keyArray[2],keyArray[3],keyArray[4]);
+					
+					if(!matchedDetails.contains(details)){
+						matchedDetails.add(details);
+					}
 				}
 			}
-			// wir geben ein Array mit all unseren Kontakten zurück
-			return matchedDetails.toArray( new ContactDetails[matchedDetails.size()] );
-		}
-		// sonst nichts - es werden keine Exception geworfen, da es seien kann, dass nichts gefunden wurde
-		return null;
-	}
-	
-	/* (non-Javadoc)
-	 * @see classes.AddressBookInterface#getAllContacts()
-	 */
-	@Override
-	public ContactDetails[] getAllContacts() throws DetailsNotFoundException, ParameterStringIsEmptyException {
-		// wir erstellen eine ArrayList, da wir noch nicht wissen wie viele Kontakte wir haben
-		List<ContactDetails> matchedDetails = new ArrayList<ContactDetails>();
-		// wir holen uns alle Keys
-		for (String key : namesMap.keySet()) {
-				//splitten sie in ihre einzelnen Bestandteile (hans::müller::123456789 -> hans, müller, 123456789) 
-				String[] keyArray = key.split("::");
-				// und holen uns die ContactDetails
-				matchedDetails.add(this.getDetails(keyArray[0],keyArray[1],keyArray[2],keyArray[3],keyArray[4]));
 		}
 		// wir geben ein Array mit all unseren Kontakten zurück
 		return matchedDetails.toArray( new ContactDetails[matchedDetails.size()] );
+
 	}
 
 	/* (non-Javadoc)

@@ -8,18 +8,28 @@ import exceptions.KeyIsNotInUseException;
 import exceptions.ParameterStringIsEmptyException;
 
 public interface AddressBookInterface {
+	
+	/**
+	 * getDetails - Sucht Key und gibt falls vorhanden den ersten ContactDetails zurück
+	 * @param key
+	 * @return ContactDetails
+	 * @throws DetailsNotFoundException
+	 * @throws ParameterStringIsEmptyException
+	 */
+	public abstract ContactDetails getDetails(String key) throws DetailsNotFoundException,
+			ParameterStringIsEmptyException;
 
 	/**
-	 * getDetails - Bildet aus den drei übergebenen Parameter einen Key und gibt falls vorhanden einen ContactDetails zurück
+	 * getDetails - Bildet aus allen übergebenen Parameter einen Key und gibt falls vorhanden einen ContactDetails zurück
 	 * @param name
 	 * @param lastname
 	 * @param phone
-	 * @return TreeMap<String, ContactDetails>
+	 * @return ContactDetails
 	 * @throws DetailsNotFoundException
 	 * @throws ParameterStringIsEmptyException
 	 */
 	public abstract ContactDetails getDetails(String name, String lastname,
-			String phone) throws DetailsNotFoundException,
+			String phone, String mail, String address) throws DetailsNotFoundException,
 			ParameterStringIsEmptyException;
 
 	/**
@@ -62,7 +72,7 @@ public interface AddressBookInterface {
 	 * @throws ParameterStringIsEmptyException
 	 */
 	public abstract ContactDetails[] search(String keyPrefix)
-			throws ParameterStringIsEmptyException;
+			throws ParameterStringIsEmptyException, DetailsNotFoundException;
 
 	/**
 	 * getAllContacts - eine Methode die uns auf einen Schlag alle Kontakte zurückgibt
@@ -97,7 +107,7 @@ public interface AddressBookInterface {
 	 * @throws ParameterStringIsEmptyException
 	 */
 	public abstract String generateKey(String name, String lastname,
-			String phone) throws ParameterStringIsEmptyException;
+			String phone, String mail, String address) throws ParameterStringIsEmptyException;
 
 	/**
 	 * generateKey - gleiche Methode nur mit dem Parameter ContactDetails

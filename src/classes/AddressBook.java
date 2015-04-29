@@ -52,9 +52,22 @@ public class AddressBook implements AddressBookInterface {
 	 * @see classes.AddressBookInterface#getDetails(java.lang.String, java.lang.String, java.lang.String)
 	 */
 	@Override
-	public ContactDetails getDetails(String name, String lastname, String phone) throws DetailsNotFoundException, ParameterStringIsEmptyException {
+	public ContactDetails getDetails(String key) throws DetailsNotFoundException, ParameterStringIsEmptyException {
+		
+		ContactDetails[] matched = this.search(key);
+
+		if (!(matched.length > 0))
+			throw new DetailsNotFoundException("Leider konnten keine Kontakte mit dem Key '" + key + "' gefunden werden!");
+		
+		return  matched[0];
+	}
+	
+	/* (non-Javadoc)
+	 * @see classes.AddressBookInterface#getDetails(java.lang.String, java.lang.String, java.lang.String)
+	 */
+	public ContactDetails getDetails(String name, String lastname, String phone, String mail, String address) throws DetailsNotFoundException, ParameterStringIsEmptyException {
 		// NEU - wir generieren unseren Key
-		String key = this.generateKey(name, lastname, phone);
+		String key = this.generateKey(name, lastname, phone, mail, address);
 
 		if (!this.keyInUse(key))
 			throw new DetailsNotFoundException("Leider konnten keine Kontakte '" + name + ", " + lastname + ", " + phone + "' gefunden werden!");
@@ -125,7 +138,7 @@ public class AddressBook implements AddressBookInterface {
 	 * @see classes.AddressBookInterface#search(java.lang.String)
 	 */
 	@Override
-	public ContactDetails[] search(String keyPrefix) throws ParameterStringIsEmptyException {
+	public ContactDetails[] search(String keyPrefix) throws ParameterStringIsEmptyException, DetailsNotFoundException {
 		// keyPrefix wird hier aufbereitet: trim und toLowerCase
 		keyPrefix = this.getCleanParameter(keyPrefix);
 		// wenn keyPrefix nicht leer ist
@@ -139,7 +152,7 @@ public class AddressBook implements AddressBookInterface {
 					//splitten sie in ihre einzelnen Bestandteile (hans::müller::123456789 -> hans, müller, 123456789) 
 					String[] keyArray = key.split("::");
 					// und holen uns die ContactDetails
-					matchedDetails.add(this.getDetails(keyArray[0],keyArray[1],keyArray[2]));
+					matchedDetails.add(this.getDetails(keyArray[0],keyArray[1],keyArray[2],keyArray[3],keyArray[4]));
 				}
 			}
 			// wir geben ein Array mit all unseren Kontakten zurück
@@ -161,7 +174,7 @@ public class AddressBook implements AddressBookInterface {
 				//splitten sie in ihre einzelnen Bestandteile (hans::müller::123456789 -> hans, müller, 123456789) 
 				String[] keyArray = key.split("::");
 				// und holen uns die ContactDetails
-				matchedDetails.add(this.getDetails(keyArray[0],keyArray[1],keyArray[2]));
+				matchedDetails.add(this.getDetails(keyArray[0],keyArray[1],keyArray[2],keyArray[3],keyArray[4]));
 		}
 		// wir geben ein Array mit all unseren Kontakten zurück
 		return matchedDetails.toArray( new ContactDetails[matchedDetails.size()] );
@@ -207,15 +220,18 @@ public class AddressBook implements AddressBookInterface {
 	 * @see classes.AddressBookInterface#generateKey(java.lang.String, java.lang.String, java.lang.String)
 	 */
 	@Override
-	public String generateKey(String name, String lastname, String phone) throws ParameterStringIsEmptyException{
+	public String generateKey(String name, String lastname, String phone, String mail, String address) throws ParameterStringIsEmptyException{
 		// wir säubern die Keys
 		name = this.getCleanParameter(name);
 		lastname =this.getCleanParameter(lastname);
 		// wenn kein Telefon vorhanden ist wird eine Defaultnummer erstellt und somit die Speicherung ohne Telefon ermöglicht.
-		phone = (phone.isEmpty()) ? "0000000000" : this.getCleanParameter(phone); 
+		phone = (phone.isEmpty()) ? "0000000000" : this.getCleanParameter(phone);
+		mail = (mail.isEmpty()) ? "0000000000" : this.getCleanParameter(mail);
+		address = (address.isEmpty()) ? "0000000000" : this.getCleanParameter(address);
+		
 		
 		// Der Key wird durch den Namen + Nachnamen + Telefon generiert und somit eindeutig gemacht (separiert werden die Strings durch :: um die Eindeutigkeit zu gewähren).
-		return name + "::" + lastname + "::" + phone;
+		return name + "::" + lastname + "::" + phone + "::" + mail + "::" + address;
 	}
 	
 	/* (non-Javadoc)
@@ -224,11 +240,7 @@ public class AddressBook implements AddressBookInterface {
 	@Override
 	public String generateKey(ContactDetails details) throws ParameterStringIsEmptyException{
 		// gleiche Funktion wie oben nur nimmt stattdessen ein Objekt ContactDetails entgegen
-		String name = this.getCleanParameter(details.getVorname());
-		String lastname = this.getCleanParameter(details.getNachname());
-		String phone = (details.getTelefonnummer().isEmpty()) ? "0000000000": this.getCleanParameter(details.getTelefonnummer());
-		
-		return name + "::" + lastname + "::" + phone;
+		return this.generateKey(details.getVorname(), details.getNachname(), details.getTelefonnummer(), details.getMail(), details.getAdresse());
 	}
 
 }

@@ -193,7 +193,7 @@ public class AddressBookUi extends Application {
 			ContactDetails[] query = null;
 			try {
 				query = book.search(keyPrefix);
-			} catch (ParameterStringIsEmptyException e) {
+			} catch (ParameterStringIsEmptyException | DetailsNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -361,7 +361,7 @@ public class AddressBookUi extends Application {
 	
 	private void fillAddressBook() {
 		
-		for(int i = 0; i < 5; i++){
+		for(int i = 0; i < 100; i++){
 			ContactDetails a = new ContactDetails(
 					csRandomAlphaNumericString(5), 
 					csRandomAlphaNumericString(6),

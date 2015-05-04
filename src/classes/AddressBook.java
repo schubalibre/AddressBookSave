@@ -54,6 +54,9 @@ public class AddressBook implements AddressBookInterface {
 	@Override
 	public ContactDetails getDetails(String key) throws DetailsNotFoundException, ParameterStringIsEmptyException {
 		
+		if(key == null || key.isEmpty())
+			throw new ParameterStringIsEmptyException("Leider ist der Key leer.");
+		
 		ContactDetails[] matched = this.search(key);
 
 		if (!(matched.length > 0))

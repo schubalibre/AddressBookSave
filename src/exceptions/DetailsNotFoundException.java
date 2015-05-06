@@ -1,10 +1,9 @@
 package exceptions;
 
+public class DetailsNotFoundException extends Exception{
 
-public class DetailsNotFoundException extends Exception {
-
-	public DetailsNotFoundException(String s) {
-		super( s );
+	public DetailsNotFoundException(String message) {
+		super(message);
 	}
-
+	
 }

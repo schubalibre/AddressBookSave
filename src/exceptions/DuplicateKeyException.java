@@ -1,9 +1,9 @@
 package exceptions;
 
-public class DuplicateKeyException extends Exception {
-
-	public DuplicateKeyException(String string) {
-		super(string);
+public class DuplicateKeyException extends Exception{
+	
+	public DuplicateKeyException(String message) {
+		super(message);
 	}
 
 }

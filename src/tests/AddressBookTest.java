@@ -5,9 +5,6 @@ import static org.junit.Assert.*;
 import org.junit.Ignore;
 import org.junit.Test;
 
-
-
-
 import classes.AddressBook;
 import classes.ContactDetails;
 import exceptions.DetailsNotFoundException;
@@ -71,7 +68,7 @@ public class AddressBookTest {
 	//Methode
 		@Test
 		public void testGetDetails2() throws DetailsNotFoundException, ParameterStringIsEmptyException, DuplicateKeyException, InvalidContactException {
-			book.addDetails(cdTobias);
+			book.addDetails(cdTobias);	
 			assertEquals(cdTobias, book.getDetails("Tobias", "Klatt", "030", "Mond", "Tobi.Klatt@web.de"));
 		}
 
@@ -137,7 +134,7 @@ public class AddressBookTest {
 	}
 	
 	@Ignore
-	//Mein Verdacht ist, die Exception "DuplicateKeyException" wird �berhaupt nie geworfen!
+	//Mein Verdacht ist, die Exception "DuplicateKeyException" wird überhaupt nie geworfen!
 	//Ich konnte im Adressbuch zumindest die Aufrufstelle nicht ausmachen
 	@Test (expected = DuplicateKeyException.class)
 	public void testChangeDetailDuplicateKeyException () throws DuplicateKeyException, InvalidContactException, KeyIsNotInUseException, ParameterStringIsEmptyException {
@@ -157,18 +154,9 @@ public class AddressBookTest {
 	
 //	ContactDetails[] search(String)
 	//Exceptions
-	@Test (expected = ParameterStringIsEmptyException.class)
+	@Test
 	public void testSearchParameterNull () throws ParameterStringIsEmptyException, DetailsNotFoundException{
-		book.search(null);
-	}
-	
-	@Ignore
-	//Kann dieser Test raus?
-	//Die Exception wird meineserachtens von getDetail geworfen.
-	//F�r getDetails habe ich bereits getestet, dass diese Exception zufriedenstellend geworfen wird.
-	@Test (expected = DetailsNotFoundException.class)
-	public void testSearchDetailsNotFoundException () throws ParameterStringIsEmptyException, DetailsNotFoundException{
-		book.search(book.generateKey(cdRagnar));
+		assertEquals(book.search(null), book.search(null));
 	}
 	
 	//Methode
@@ -184,17 +172,7 @@ public class AddressBookTest {
 	@Test (expected = ParameterStringIsEmptyException.class)
 	public void testGetAllContactsParameterStringIsEmptyException () throws DuplicateKeyException, InvalidContactException, ParameterStringIsEmptyException, DetailsNotFoundException {
 		book.addDetails(cdNull);
-		book.search("");
-	}
-	
-	@Ignore
-	//Macht keinen Sinn, meiner Ansicht nach.
-	//Die Exception wird von getDetails geschmissen.
-	//Diese Methode ist bereits getestet.
-	//getAllContacts kann ich gar nicht so weit provozieren das diese Exception fliegt
-	@Test (expected = DetailsNotFoundException.class)
-	public void testGetAllContactsDetailsNotFoundException () throws DetailsNotFoundException, ParameterStringIsEmptyException {
-		book.search("");
+		book.search(null);
 	}
 	
 	//Methode
@@ -204,7 +182,7 @@ public class AddressBookTest {
 		book.addDetails(cdRagnar);
 		book.addDetails(cdTobias);
 		//Diese Methode ist veraltet aber eien andere L�sung habe ich nicht gefunden
-		assertEquals(kontaktArr, book.search(""));
+		assertEquals(kontaktArr, book.search(null));
 	}
 	
 //	getNumberOfEntries()

@@ -1,11 +1,11 @@
 package interfaces;
-
 import classes.ContactDetails;
 import exceptions.DetailsNotFoundException;
 import exceptions.DuplicateKeyException;
 import exceptions.InvalidContactException;
 import exceptions.KeyIsNotInUseException;
 import exceptions.ParameterStringIsEmptyException;
+
 
 public interface AddressBookInterface {
 	
@@ -89,6 +89,7 @@ public interface AddressBookInterface {
 	 */
 	public abstract void removeDetails(String key)
 			throws KeyIsNotInUseException, ParameterStringIsEmptyException;
+	
 
 	/**
 	 * generateKey - erstellt einen Key aus den übergebenen Parametern name, lastname, phone
@@ -109,5 +110,5 @@ public interface AddressBookInterface {
 	 */
 	public abstract String generateKey(ContactDetails details)
 			throws ParameterStringIsEmptyException;
-
+	
 }

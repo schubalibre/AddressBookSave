@@ -3,8 +3,6 @@ package classes;
 import java.security.SecureRandom;
 import java.util.Random;
 
-import com.sun.javafx.geom.transform.CanTransformVec3d;
-
 import exceptions.DetailsNotFoundException;
 import exceptions.DuplicateKeyException;
 import exceptions.InvalidContactException;
@@ -14,16 +12,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 
 public class Lists extends Application {
 	
@@ -33,6 +25,7 @@ public class Lists extends Application {
 	AddressBook buch = new AddressBook();
 	
 	public Lists() {
+		// wir füllen unser AdressBuch
 		fuelleBuch();
 	}
 	
@@ -44,10 +37,14 @@ public class Lists extends Application {
 	public void start(Stage primaryStage) {
 		
 		primaryStage.setTitle("Cooles Listen");
-		
-		this.fuelleListe();
-		this.fuelleTabelle();
-		this.fuelleBaum();
+		// wir erstellen eine Liste
+		this.erstelleListe();
+		// wir erstellen eine Tabelle
+		// Das TableView dient zur Darstellung und Editierung von Daten in tabellarischer Form. 
+		// Das TableView ist Verwandt mit dem ListView und gehört zu den etwas komplexeren Komponenten. 
+		this.erstelleTabelle();
+		// wir erstellen einen Baum
+		this.erstelleBaum();
 		
 		
 		Group group = new Group();
@@ -77,9 +74,11 @@ public class Lists extends Application {
 		}
 	}
 	
-	private void fuelleListe() {
+	private void erstelleListe() {
 		try {
+			// hole alle Kontakte
 			ContactDetails[] personen = buch.search("");
+			// wir definieren ein FXCollections.observableArrayList, welches die darzustellenden Daten enthält
 			ObservableList<ContactDetails> namen = FXCollections.observableArrayList();
 			for(ContactDetails person : personen){
 				namen.add(person);
@@ -106,29 +105,25 @@ public class Lists extends Application {
 		
 	}
 
-	private void fuelleTabelle() {
+	@SuppressWarnings("unchecked")
+	private void erstelleTabelle() {
 		
         //table.setEditable(true);
 		
-		TableColumn vorname =  new TableColumn("Vorname");
-		vorname.setCellValueFactory(
-                new PropertyValueFactory<ContactDetails, String>("vorname"));
+		TableColumn<ContactDetails, String> vorname =  new TableColumn<ContactDetails, String>("Vorname");
+		vorname.setCellValueFactory(new PropertyValueFactory<ContactDetails, String>("vorname"));
 		
-		TableColumn nachname =  new TableColumn("Nachname");
-		nachname.setCellValueFactory(
-                new PropertyValueFactory<ContactDetails, String>("nachname"));
+		TableColumn<ContactDetails, String> nachname =  new TableColumn<ContactDetails, String>("Nachname");
+		nachname.setCellValueFactory(new PropertyValueFactory<ContactDetails, String>("nachname"));
 		
-		TableColumn telefon =  new TableColumn("Telefon");
-		telefon.setCellValueFactory(
-                new PropertyValueFactory<ContactDetails, String>("telefonnummer"));
+		TableColumn<ContactDetails, String> telefon =  new TableColumn<ContactDetails, String>("Telefon");
+		telefon.setCellValueFactory(new PropertyValueFactory<ContactDetails, String>("telefonnummer"));
 		
-		TableColumn email =  new TableColumn("E-Mail");
-		email.setCellValueFactory(
-                new PropertyValueFactory<ContactDetails, String>("mail"));
+		TableColumn<ContactDetails, String> email =  new TableColumn<ContactDetails, String>("E-Mail");
+		email.setCellValueFactory(new PropertyValueFactory<ContactDetails, String>("mail"));
 		
-		TableColumn adresse =  new TableColumn("Adresse");
-		adresse.setCellValueFactory(
-                new PropertyValueFactory<ContactDetails, String>("adresse"));
+		TableColumn<ContactDetails, String> adresse =  new TableColumn<ContactDetails, String>("Adresse");
+		adresse.setCellValueFactory(new PropertyValueFactory<ContactDetails, String>("adresse"));
 		
         
         tabelle.getColumns().addAll(
@@ -140,7 +135,9 @@ public class Lists extends Application {
         		);
 
 		try {
+			// als erstes holen wir alle Kontakte
 			ContactDetails[] personen = buch.search("");
+			// wir definieren ein FXCollections.observableArrayList, welches die darzustellenden Daten enthält
 			ObservableList<ContactDetails> namen = FXCollections.observableArrayList();
 			for(ContactDetails person : personen){
 				namen.add(person);
@@ -151,7 +148,8 @@ public class Lists extends Application {
 		
 	}
 
-	private void fuelleBaum() {
+	@SuppressWarnings("unchecked")
+	private void erstelleBaum() {
 		try {
 			ContactDetails[] personen = buch.search("");
 		

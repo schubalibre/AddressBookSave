@@ -10,15 +10,28 @@ import exceptions.ParameterStringIsEmptyException;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
 public class Lists extends Application {
 	
+	/*
+	 * Views!
+	 * JavaFX stellt uns 3 verschiedene "Views" zur Verfügung um Daten horizontal oder vertikal darzustellen. 
+	 * Dabei kann der User Elemente auswählen oder mit ihnen interagieren. 
+	 * Eine View hat einen generischen Typen und kann somit den Typen der Daten repräsentieren und mit ihnen arbeiten.
+	 * 
+ 	 * */
+	
+	// instantiiere ListView, TableView, TreeView und unser AddressBook
 	ListView<ContactDetails> liste = new ListView<>();
 	TableView<ContactDetails> tabelle = new TableView<>();
 	TreeView<String> baum = new TreeView<>();
@@ -38,24 +51,40 @@ public class Lists extends Application {
 		
 		primaryStage.setTitle("Cooles Listen");
 		// wir erstellen eine Liste
+		// Die ListView dient zur einfachen vertikalen Darstellung von Daten. 
 		this.erstelleListe();
 		// wir erstellen eine Tabelle
-		// Das TableView dient zur Darstellung und Editierung von Daten in tabellarischer Form. 
-		// Das TableView ist Verwandt mit dem ListView und gehört zu den etwas komplexeren Komponenten. 
+		// Die TableView dient zur Darstellung und Editierung von Daten in tabellarischer Form. 
+		// Sie ist Verwandt mit dem ListView und gehört zu den etwas komplexeren Komponenten. 
 		this.erstelleTabelle();
 		// wir erstellen einen Baum
+		// Die TreeView dient zur vertikalen Darstellung von Baumstrukturen (Versachtelungen). 
 		this.erstelleBaum();
 		
 		
+		// wir generieren unsere FX Fenster
 		Group group = new Group();
 		
-		group.getChildren().addAll(new HBox(liste,tabelle,baum));
+		group.getChildren().addAll(new HBox(new VBox(hLabel("Liste"),liste),new VBox(hLabel("Tabelle"),tabelle),new VBox(hLabel("Baum"),baum)));
 		
 		Scene scene = new Scene(group, 1200, 500);
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}
 	
+	private Label hLabel(String str) {
+		Label label = new Label(str);
+	    label.setFont(new Font("Arial", 30));
+	    label.setWrapText(true);
+	    label.setAlignment(Pos.CENTER);
+	    label.setTextAlignment(TextAlignment.CENTER);
+
+		return label;
+	}
+	
+	/**
+	 * fülle das Addressbook mit Defaultwerten
+	 */
 	private void fuelleBuch(){
 
 		for(int i = 0; i < 500; i++){
@@ -74,26 +103,44 @@ public class Lists extends Application {
 		}
 	}
 	
+	/**
+	 * Eine ListView kann selbst keine Daten aufnehmen und wir müssen unsere Kontakte über eine besondere ArrayList (observableArrayList)
+	 * hinzufügen. Eine observableArrayList ermöglicht uns auch mit eventHandler zu arbeiten.... hier wird das nicht benutzt.
+	 * WICHTIG: die Daten, die angezeigt werden sollen, werden nicht als Strings übergeben sondern, für eine höhere Flexibilität, als Objekte.
+	 * Dies ermöglicht uns, direkt mit den Objekten zu arbeiten. Damit die ListView "weiß", welcher der Daten anzuzeigen sind,
+	 * müssen wir dies mit Hilfe von setCellFactory in einer inneren Funktion angeben. 
+	 */
+	
 	private void erstelleListe() {
 		try {
 			// hole alle Kontakte
 			ContactDetails[] personen = buch.search("");
+			
 			// wir definieren ein FXCollections.observableArrayList, welches die darzustellenden Daten enthält
 			ObservableList<ContactDetails> namen = FXCollections.observableArrayList();
+			
+			// wir fügen jeden einzelnen Kontakt (Person) in unsere observableArrayList
 			for(ContactDetails person : personen){
 				namen.add(person);
 			}
 			
+			// wir fügen unsere Daten der observableArrayList in unsere Liste hinzu
 			liste.setItems(namen);
 			
+			
+			// wir editieren die Form, wie wir die Daten in unserer Liste anzeigen wollen
+			// diese Methode ist aus dem Oracle Handbuch für ListViews
 			liste.setCellFactory((listItem) -> {
+				// setCellFactory verlangt ein neues Objekt ListCell
 			    return new ListCell<ContactDetails>() {
+			    	// wir überschreiben die Methode updateItem
 			        @Override
 			        protected void updateItem(ContactDetails item, boolean empty) {
 			            super.updateItem(item, empty);
+			            // Wenn unserer ContactDetails leer ist .....
 			            if (item == null || empty) {
 			                setText(null);
-			            } else {
+			            } else { // und wenn nicht geben wir Nachname und Vorname aus.
 			                setText(item.getNachname() + ", " + item.getVorname());
 			            }
 			        }
@@ -105,14 +152,22 @@ public class Lists extends Application {
 		
 	}
 
-	@SuppressWarnings("unchecked")
+	/**
+	 * Die TableView ist Verwandt mit dem ListView und gehört zu den etwas komplexeren Komponenten. Dank JavaFX wird werden uns 
+	 * Eigenschaften wie z.B. Sortierung der der Spalten, Layout etc. von Java abgenommen. Auch bei der TableView sollte 
+	 * direkt mit den Objekten gearbeitet werden. Dazu muss auch hier wieder über setCellValueFactory angegeben werden, welche Attribute
+	 * unseres Objektes angezeigt werden.
+	 */
 	private void erstelleTabelle() {
-		
-        //table.setEditable(true);
-		
+
+		// Deklaration des Tabellenkopfes mit dem Namen
 		TableColumn<ContactDetails, String> vorname =  new TableColumn<ContactDetails, String>("Vorname");
+		// hier sagen wir der Tabelle, dass es das Attribut vorname aus unseren Objekt nehmen soll. 
+		// Dabei wird intern auf die getter Methoden zurückgegriffen
 		vorname.setCellValueFactory(new PropertyValueFactory<ContactDetails, String>("vorname"));
 		
+		
+		// analog zu wie oben beschrieben
 		TableColumn<ContactDetails, String> nachname =  new TableColumn<ContactDetails, String>("Nachname");
 		nachname.setCellValueFactory(new PropertyValueFactory<ContactDetails, String>("nachname"));
 		
@@ -125,7 +180,7 @@ public class Lists extends Application {
 		TableColumn<ContactDetails, String> adresse =  new TableColumn<ContactDetails, String>("Adresse");
 		adresse.setCellValueFactory(new PropertyValueFactory<ContactDetails, String>("adresse"));
 		
-        
+        // wir fügen unseren Tabellenkopf in unsere Tabelle ein
         tabelle.getColumns().addAll(
         		vorname, 
         		nachname, 
@@ -142,21 +197,30 @@ public class Lists extends Application {
 			for(ContactDetails person : personen){
 				namen.add(person);
 			}
+			// wir fügen unsere Daten der observableArrayList in unsere Tabelle hinzu
 			tabelle.setItems(namen);
 			
 		} catch (ParameterStringIsEmptyException | DetailsNotFoundException e) { e.getMessage();	}
 		
 	}
 
-	@SuppressWarnings("unchecked")
+	/**
+	 * Treeviews ermöglichen uns Daten in einer verschachtelte Baumstruktur anzuzeigen, wie wir es z.B. aus dem Dateimanager kennen
+	 * Dabei wird nicht mehr mit einer Liste gearbeitet sondern mit Knoten. Jedem Knoten kann, nach Benennung ein weiterer Kinds-Knoten 
+	 * übergeben werden. Somit kann eine Komplexe Baumstruktur erreicht werden. Der Wurzel-Knoten ist immer der oberste.   
+	 */
 	private void erstelleBaum() {
+		// wir erstellen unseren Wurzel-Knoten mit dem Namen "Adressbuch"
+		TreeItem<String> rootItem = new TreeItem<String> ("Adressbuch");
+		// es soll "ausgeklappt" starten
+        rootItem.setExpanded(true);
+
 		try {
+
+			// als erstes holen wir alle Kontakte
 			ContactDetails[] personen = buch.search("");
-		
-			TreeItem<String> rootItem = new TreeItem<String> ("Adressbuch");
-	        rootItem.setExpanded(true);
-	        
 	        for(ContactDetails person : personen){
+	        	// wir arbeiten hier nicht mehr mit einer observableArrayList sondern direkt mit den Tree-Knoten
 	        	TreeItem<String> item = new TreeItem<String> (person.getVorname() + " " + person.getNachname()); 
 	        	
 	        	TreeItem<String> nameItem = new TreeItem<String> ("Vorname: " + person.getVorname());
@@ -164,22 +228,22 @@ public class Lists extends Application {
 	        	TreeItem<String> telefonItem = new TreeItem<String> ("Telefon: " + person.getTelefonnummer());
 	        	TreeItem<String> emailItem = new TreeItem<String> ("E-Mail: " + person.getMail());
 	        	TreeItem<String> adressItem = new TreeItem<String> ("Adresse: " + person.getAdresse());
-	        	
-	        	
+
+	        	// jeder Kind-Knoten wird seinem Eltern-Knoten zugewiesen
 	        	item.getChildren().addAll(
 	        			nameItem,
 	        			nachnameItem,
 	        			telefonItem,
 	        			emailItem,
 	        			adressItem);
+	        	// und schlussendlich an unseren Wurzel-Knoten übergeben
 	            rootItem.getChildren().add(item);
 			}
-       
-	        baum = new TreeView<String> (rootItem);
-			
 		} catch (ParameterStringIsEmptyException | DetailsNotFoundException e) { e.getMessage();	}
+	
+		// der Wurzel-Knoten kommt nun in die Treeview 
+        baum = new TreeView<String> (rootItem);
 	}
-
 
 	public static void main(String[] args) {
 		launch(args);

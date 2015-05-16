@@ -156,7 +156,7 @@ public class Lists extends Application {
 	 * Die TableView ist Verwandt mit dem ListView und gehört zu den etwas komplexeren Komponenten. Dank JavaFX wird werden uns 
 	 * Eigenschaften wie z.B. Sortierung der der Spalten, Layout etc. von Java abgenommen. Auch bei der TableView sollte 
 	 * direkt mit den Objekten gearbeitet werden. Dazu muss auch hier wieder über setCellValueFactory angegeben werden, welche Attribute
-	 * unseres Objektes angezeigt werden.
+	 * unseres Objektes angezeigt werden. Auch hier werden die Daten erst in einer observableArrayList gespeicht und dann der TableView übergeben.
 	 */
 	private void erstelleTabelle() {
 
@@ -206,7 +206,7 @@ public class Lists extends Application {
 
 	/**
 	 * Treeviews ermöglichen uns Daten in einer verschachtelte Baumstruktur anzuzeigen, wie wir es z.B. aus dem Dateimanager kennen
-	 * Dabei wird nicht mehr mit einer Liste gearbeitet sondern mit Knoten. Jedem Knoten kann, nach Benennung ein weiterer Kinds-Knoten 
+	 * Dabei wird nicht mehr mit einer Liste (observableArrayList) gearbeitet sondern mit Knoten. Jedem Knoten kann, nach Benennung ein weiterer Kinds-Knoten 
 	 * übergeben werden. Somit kann eine Komplexe Baumstruktur erreicht werden. Der Wurzel-Knoten ist immer der oberste.   
 	 */
 	private void erstelleBaum() {
@@ -250,15 +250,25 @@ public class Lists extends Application {
 	}
 	
 	private String csRandomAlphaNumericString(int numChars) {
+		// bei der Generierung von Zufallszahlen gibt es wie bei Pflanzen einen Samen, der zu Nachkommen führt. 
+		// Aus diesem Startwert ermittelt der Zufallszahlengenerator anschließend die folgenden Zahlen durch lineare Kongruenzen.
+		// Dadurch sind die Zahlen nicht wirklich zufällig, sondern gehorchen einem mathematischen Verfahren. 
+		// Kryptografisch bessere Zufallszahlen liefert die Klasse java.security.SecureRandom, die eine Unterklasse von Random ist.
 		SecureRandom srand = new SecureRandom();
+		
 	    Random rand = new Random();
+	    // wir intantiieren uns Array vom Typ char mit der länge der Der Zeichen die unser Default-Wort haben soll
 	    char[] buff = new char[numChars];
 
+	    // nun durchlaufen wir eine for-Schleife für jedes Zeichen 
 	    for (int i = 0; i < numChars; ++i) {
-	      // reseed rand once you've used up all available entropy bits
+	      // damit auch bei Zeichenketten länger als 10 Zeichen der Zufall gewährleistet wird setzen wir einen neuen Samen mit Hilfe unseres 
+	      // SecureRandom Super Algorithmus....
 	      if ((i % 10) == 0) {
+	    	  // and here is where the magic happens....
 	          rand.setSeed(srand.nextLong()); // 64 bits of random!
 	      }
+	      // wir kreieren in unseren Array buff ein zufälliges Zeichen mit Hilfe der von Random und unseren Zeichen Array VALID_CHARACTERS.
 	      buff[i] = VALID_CHARACTERS[rand.nextInt(VALID_CHARACTERS.length)];
 	    }
 	    return new String(buff);

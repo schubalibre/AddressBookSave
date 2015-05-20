@@ -32,19 +32,24 @@ public class Lists extends Application {
  	 * */
 	
 	// instantiiere ListView, TableView, TreeView und unser AddressBook
-	ListView<ContactDetails> liste = new ListView<>();
-	TableView<ContactDetails> tabelle = new TableView<>();
-	TreeView<String> baum = new TreeView<>();
+	ListView<ContactDetails> listeView = new ListView<>();
+	TableView<ContactDetails> tabelleView = new TableView<>();
+	TreeView<String> baumView;
 	AddressBook buch = new AddressBook();
+	
+	//DefaultNamen, damit wir Zufallskontakte entwickeln können
+	private static char[] VALID_CHARACTERS =
+			    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456879".toCharArray();
 	
 	public Lists() {
 		// wir füllen unser AdressBuch
 		fuelleBuch();
 	}
 	
-	//DefaultNamen, damit wir Zufallskontakte entwickeln können
-	private static char[] VALID_CHARACTERS =
-		    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456879".toCharArray();
+	public Lists(AddressBook buch) {
+		// wir füllen unser AdressBuch
+		this.buch = buch;
+	}
 
 	@Override
 	public void start(Stage primaryStage) {
@@ -65,7 +70,12 @@ public class Lists extends Application {
 		// wir generieren unsere FX Fenster
 		Group group = new Group();
 		
-		group.getChildren().addAll(new HBox(new VBox(hLabel("Liste"),liste),new VBox(hLabel("Tabelle"),tabelle),new VBox(hLabel("Baum"),baum)));
+		group.getChildren().addAll(new HBox(
+				new VBox(hLabel("Liste"),listeView),
+				new VBox(hLabel("Tabelle"),tabelleView),
+				new VBox(hLabel("Baum"),baumView)
+				)
+		);
 		
 		Scene scene = new Scene(group, 1200, 500);
 		primaryStage.setScene(scene);
@@ -75,10 +85,7 @@ public class Lists extends Application {
 	private Label hLabel(String str) {
 		Label label = new Label(str);
 	    label.setFont(new Font("Arial", 30));
-	    label.setWrapText(true);
-	    label.setAlignment(Pos.CENTER);
-	    label.setTextAlignment(TextAlignment.CENTER);
-
+	    
 		return label;
 	}
 	
@@ -88,6 +95,10 @@ public class Lists extends Application {
 	private void fuelleBuch(){
 
 		for(int i = 0; i < 500; i++){
+			
+			
+			
+			
 			ContactDetails person = new ContactDetails(
 					this.csRandomAlphaNumericString(5), 
 					this.csRandomAlphaNumericString(6),
@@ -95,11 +106,17 @@ public class Lists extends Application {
 					this.csRandomAlphaNumericString(12),
 					this.csRandomAlphaNumericString(25)
 					);	
+			
+			
 			try {
 				buch.addDetails(person);
 			} catch (DuplicateKeyException | InvalidContactException | ParameterStringIsEmptyException e) {
 				e.getMessage();
 			}
+			
+			
+			
+			
 		}
 	}
 	
@@ -117,20 +134,20 @@ public class Lists extends Application {
 			ContactDetails[] personen = buch.search("");
 			
 			// wir definieren ein FXCollections.observableArrayList, welches die darzustellenden Daten enthält
-			ObservableList<ContactDetails> namen = FXCollections.observableArrayList();
+			ObservableList<ContactDetails> namensListe = FXCollections.observableArrayList();
 			
 			// wir fügen jeden einzelnen Kontakt (Person) in unsere observableArrayList
 			for(ContactDetails person : personen){
-				namen.add(person);
+				namensListe.add(person);
 			}
 			
 			// wir fügen unsere Daten der observableArrayList in unsere Liste hinzu
-			liste.setItems(namen);
+			listeView.setItems(namensListe);
 			
 			
 			// wir editieren die Form, wie wir die Daten in unserer Liste anzeigen wollen
 			// diese Methode ist aus dem Oracle Handbuch für ListViews
-			liste.setCellFactory((listItem) -> {
+			listeView.setCellFactory((listItem) -> {
 				// setCellFactory verlangt ein neues Objekt ListCell
 			    return new ListCell<ContactDetails>() {
 			    	// wir überschreiben die Methode updateItem
@@ -158,13 +175,27 @@ public class Lists extends Application {
 	 * direkt mit den Objekten gearbeitet werden. Dazu muss auch hier wieder über setCellValueFactory angegeben werden, welche Attribute
 	 * unseres Objektes angezeigt werden. Auch hier werden die Daten erst in einer observableArrayList gespeicht und dann der TableView übergeben.
 	 */
+	
 	private void erstelleTabelle() {
+		
+		try {
+			// als erstes holen wir alle Kontakte
+			ContactDetails[] personen = buch.search("");
+			// wir definieren ein FXCollections.observableArrayList, welches die darzustellenden Daten enthält
+			ObservableList<ContactDetails> namen = FXCollections.observableArrayList();
+			for(ContactDetails person : personen){
+				namen.add(person);
+			}
+			// wir fügen unsere Daten der observableArrayList in unsere Tabelle hinzu
+			tabelleView.setItems(namen);
+			
+		} catch (ParameterStringIsEmptyException | DetailsNotFoundException e) { e.getMessage();	}
 
-		// Deklaration des Tabellenkopfes mit dem Namen
+		// Deklaration der Tabellenspalte mit dem Namen
 		TableColumn<ContactDetails, String> vorname =  new TableColumn<ContactDetails, String>("Vorname");
 		// hier sagen wir der Tabelle, dass es das Attribut vorname aus unseren Objekt nehmen soll. 
 		// Dabei wird intern auf die getter Methoden zurückgegriffen
-		vorname.setCellValueFactory(new PropertyValueFactory<ContactDetails, String>("vorname"));
+		vorname.setCellValueFactory(new PropertyValueFactory<ContactDetails, String>("vorname")); // intern -> contactDetails.getVorname();
 		
 		
 		// analog zu wie oben beschrieben
@@ -180,8 +211,8 @@ public class Lists extends Application {
 		TableColumn<ContactDetails, String> adresse =  new TableColumn<ContactDetails, String>("Adresse");
 		adresse.setCellValueFactory(new PropertyValueFactory<ContactDetails, String>("adresse"));
 		
-        // wir fügen unseren Tabellenkopf in unsere Tabelle ein
-        tabelle.getColumns().addAll(
+        // wir fügen unseren Tabellenspalten in unsere Tabelle ein
+        tabelleView.getColumns().addAll(
         		vorname, 
         		nachname, 
         		telefon,
@@ -189,19 +220,6 @@ public class Lists extends Application {
         		adresse
         		);
 
-		try {
-			// als erstes holen wir alle Kontakte
-			ContactDetails[] personen = buch.search("");
-			// wir definieren ein FXCollections.observableArrayList, welches die darzustellenden Daten enthält
-			ObservableList<ContactDetails> namen = FXCollections.observableArrayList();
-			for(ContactDetails person : personen){
-				namen.add(person);
-			}
-			// wir fügen unsere Daten der observableArrayList in unsere Tabelle hinzu
-			tabelle.setItems(namen);
-			
-		} catch (ParameterStringIsEmptyException | DetailsNotFoundException e) { e.getMessage();	}
-		
 	}
 
 	/**
@@ -221,7 +239,7 @@ public class Lists extends Application {
 			ContactDetails[] personen = buch.search("");
 	        for(ContactDetails person : personen){
 	        	// wir arbeiten hier nicht mehr mit einer observableArrayList sondern direkt mit den Tree-Knoten
-	        	TreeItem<String> item = new TreeItem<String> (person.getVorname() + " " + person.getNachname()); 
+	        	TreeItem<String> item = new TreeItem<String> ("Kontakt: " + person.getVorname() + " " + person.getNachname()); 
 	        	
 	        	TreeItem<String> nameItem = new TreeItem<String> ("Vorname: " + person.getVorname());
 	        	TreeItem<String> nachnameItem = new TreeItem<String> ("Nachname: " + person.getNachname());
@@ -242,7 +260,7 @@ public class Lists extends Application {
 		} catch (ParameterStringIsEmptyException | DetailsNotFoundException e) { e.getMessage();	}
 	
 		// der Wurzel-Knoten kommt nun in die Treeview 
-        baum = new TreeView<String> (rootItem);
+        baumView = new TreeView<String> (rootItem);
 	}
 
 	public static void main(String[] args) {
